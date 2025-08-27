@@ -1,111 +1,338 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../features/auth/authSlice";
 import {
-  Box,
-  Drawer,
   AppBar,
-  Toolbar,
+  Box,
+  Collapse,
+  CssBaseline,
+  Divider,
+  Drawer,
+  IconButton,
   List,
-  Typography,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
+  Toolbar,
+  Typography,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import InventoryIcon from "@mui/icons-material/Inventory";
+import PagesIcon from "@mui/icons-material/Pages";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import EmailIcon from "@mui/icons-material/Email";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import LogoutIcon from "@mui/icons-material/Logout";
-import ArticleIcon from "@mui/icons-material/Article";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
-import MailIcon from "@mui/icons-material/Mail";
-import WebIcon from "@mui/icons-material/Web";
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
-// --- UPDATED MENU ---
-const menuItems = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Products", icon: <InventoryIcon />, path: "/products" },
-  { text: "Blog", icon: <ArticleIcon />, path: "/blog" },
-  { text: "Downloads", icon: <CloudDownloadIcon />, path: "/downloads" },
-  { text: "Inquiries", icon: <MailIcon />, path: "/inquiries" },
-  { text: "Page Content", icon: <WebIcon />, path: "/content" },
-];
-
-const DashboardLayout = () => {
+const DashboardLayout = (props) => {
+  const { window } = props;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // State for each dropdown menu
+  const [pagesOpen, setPagesOpen] = useState(false);
+  const [productOpen, setProductOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false);
+  const [howtoOpen, setHowtoOpen] = useState(false);
+  const [contentOpen, setContentOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const drawerContent = (
+    <div>
+      <Toolbar />
+      <List component="nav">
+        <ListItemButton
+          onClick={() => navigate("/dashboard")}
+          selected={location.pathname === "/dashboard"}
+        >
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
+          <ListItemText primary="Dashboard" />
+        </ListItemButton>
+
+        {/* --- Pages Dropdown --- */}
+        <ListItemButton onClick={() => setPagesOpen(!pagesOpen)}>
+          <ListItemIcon>
+            <PagesIcon />
+          </ListItemIcon>
+          <ListItemText primary="Pages" />
+          {pagesOpen ? <ExpandLess /> : <ExpandMore />}
+        </ListItemButton>
+        <Collapse in={pagesOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/pages/home")}
+              selected={location.pathname === "/pages/home"}
+            >
+              <ListItemText primary="Home" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/pages/about")}
+              selected={location.pathname === "/pages/about"}
+            >
+              <ListItemText primary="About" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/pages/services")}
+              selected={location.pathname === "/pages/services"}
+            >
+              <ListItemText primary="Service" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/pages/blog")}
+              selected={location.pathname === "/pages/blog"}
+            >
+              <ListItemText primary="Blog" />
+            </ListItemButton>
+
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/pages/faq")}
+            >
+              <ListItemText primary="FAQ Page" />
+            </ListItemButton>
+          </List>
+        </Collapse>
+
+        {/* --- Product Dropdown --- */}
+        <ListItemButton onClick={() => setProductOpen(!productOpen)}>
+          <ListItemIcon>
+            <Inventory2Icon />
+          </ListItemIcon>
+          <ListItemText primary="Product" />
+          {productOpen ? <ExpandLess /> : <ExpandMore />}
+        </ListItemButton>
+        <Collapse in={productOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/products/cameras")}
+              selected={location.pathname === "/products/cameras"}
+            >
+              <ListItemText primary="Cameras" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/products/recorders")}
+              selected={location.pathname === "/products/recorders"}
+            >
+              <ListItemText primary="Recorders" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/products/switches")}
+              selected={location.pathname === "/products/switches"}
+            >
+              <ListItemText primary="Switches" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/products/systems")}
+              selected={location.pathname === "/products/systems"}
+            >
+              <ListItemText primary="Systems" />
+            </ListItemButton>
+          </List>
+        </Collapse>
+
+        {/* --- Support Dropdown (Nested) --- */}
+        <ListItemButton onClick={() => setSupportOpen(!supportOpen)}>
+          <ListItemIcon>
+            <SupportAgentIcon />
+          </ListItemIcon>
+          <ListItemText primary="Support" />
+          {supportOpen ? <ExpandLess /> : <ExpandMore />}
+        </ListItemButton>
+        <Collapse in={supportOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => setDownloadOpen(!downloadOpen)}
+            >
+              <ListItemText primary="Download" />
+              {downloadOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+            <Collapse in={downloadOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItemButton
+                  sx={{ pl: 6 }}
+                  onClick={() => navigate("/support/downloads/firmware")}
+                >
+                  <ListItemText primary="Firmware" />
+                </ListItemButton>
+                <ListItemButton
+                  sx={{ pl: 6 }}
+                  onClick={() => navigate("/support/downloads/sdk")}
+                >
+                  <ListItemText primary="SDK" />
+                </ListItemButton>
+                <ListItemButton
+                  sx={{ pl: 6 }}
+                  onClick={() => navigate("/support/downloads/software")}
+                >
+                  <ListItemText primary="Software" />
+                </ListItemButton>
+              </List>
+            </Collapse>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => setHowtoOpen(!howtoOpen)}
+            >
+              <ListItemText primary="How-To" />
+              {howtoOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+            <Collapse in={howtoOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItemButton
+                  sx={{ pl: 6 }}
+                  onClick={() => navigate("/support/howto/guides")}
+                >
+                  <ListItemText primary="Guides" />
+                </ListItemButton>
+                <ListItemButton
+                  sx={{ pl: 6 }}
+                  onClick={() => navigate("/support/howto/videos")}
+                >
+                  <ListItemText primary="Videos" />
+                </ListItemButton>
+              </List>
+            </Collapse>
+          </List>
+        </Collapse>
+
+        {/* --- Content Dropdown --- */}
+        <ListItemButton onClick={() => setContentOpen(!contentOpen)}>
+          <ListItemIcon>
+            <EmailIcon />
+          </ListItemIcon>
+          <ListItemText primary="Content" />
+          {contentOpen ? <ExpandLess /> : <ExpandMore />}
+        </ListItemButton>
+        <Collapse in={contentOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/content/sales")}
+            >
+              <ListItemText primary="Sales Messages" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/content/technical")}
+            >
+              <ListItemText primary="Technical Messages" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/content/subscriptions")}
+            >
+              <ListItemText primary="Subscriptions" />
+            </ListItemButton>
+          </List>
+        </Collapse>
+
+        <Divider sx={{ my: 1 }} />
+        <ListItemButton
+          onClick={() => {
+            dispatch(logout());
+            navigate("/login");
+          }}
+        >
+          <ListItemIcon>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Logout" />
+        </ListItemButton>
+      </List>
+    </div>
+  );
+
+  const container =
+    window !== undefined ? () => window().document.body : undefined;
 
   return (
     <Box sx={{ display: "flex" }}>
+      <CssBaseline />
       <AppBar
         position="fixed"
         sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          bgcolor: "primary.main",
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
         }}
       >
         <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: "none" } }}
+          >
+            <MenuIcon />
+          </IconButton>
           <Typography variant="h6" noWrap component="div">
-            AK-Vistion Admin Panel
+            Admin Panel
           </Typography>
         </Toolbar>
       </AppBar>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: {
-            width: drawerWidth,
-            boxSizing: "border-box",
-          },
-        }}
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
-        <Toolbar />
-        <Box sx={{ overflow: "auto" }}>
-          <List>
-            {menuItems.map((item) => (
-              <ListItem key={item.text} disablePadding>
-                <ListItemButton
-                  selected={location.pathname.startsWith(item.path)}
-                  onClick={() => navigate(item.path)}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-          <Divider />
-          <List>
-            <ListItem disablePadding>
-              <ListItemButton
-                onClick={() => {
-                  dispatch(logout());
-                  navigate("/login");
-                }}
-              >
-                <ListItemIcon>
-                  <LogoutIcon />
-                </ListItemIcon>
-                <ListItemText primary="Logout" />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Box>
-      </Drawer>
+        {/* Mobile Drawer */}
+        <Drawer
+          container={container}
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: "block", sm: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+        {/* Desktop Drawer */}
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: "none", sm: "block" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
+          }}
+          open
+        >
+          {drawerContent}
+        </Drawer>
+      </Box>
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          bgcolor: "background.default",
-          minHeight: "100vh",
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
         }}
       >
         <Toolbar />

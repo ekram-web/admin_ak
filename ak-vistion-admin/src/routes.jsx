@@ -1,19 +1,33 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-
-// Layouts and Pages
 import DashboardLayout from "./layouts/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
-
-// Feature Components
 import DashboardPage from "./features/dashboard/DashboardPage";
-import ProductsPage from "./features/products/ProductsPage";
-import BlogPage from "./features/blog/BlogPage";
-import BlogPostForm from "./features/blog/BlogPostForm";
-import DownloadsPage from "./features/downloads/DownloadsPage";
-import InquiriesPage from "./features/inquiries/InquiriesPage";
-import ContentPage from "./features/content/ContentPage";
+
+// --- Import All New Page Placeholders ---
+import HomePageAdmin from "./features/pages/HomePageAdmin";
+import AboutPageAdmin from "./features/pages/AboutPageAdmin";
+import ServicesPageAdmin from "./features/pages/ServicesPageAdmin";
+import BlogPageAdmin from "./features/pages/BlogPageAdmin";
+
+import ProductCamerasAdmin from "./features/products/ProductCamerasAdmin";
+import ProductRecordersAdmin from "./features/products/ProductRecordersAdmin";
+import ProductSwitchesAdmin from "./features/products/ProductSwitchesAdmin";
+import ProductSystemsAdmin from "./features/products/ProductSystemsAdmin";
+
+import SupportFirmwareAdmin from "./features/support/SupportFirmwareAdmin";
+import SupportSdkAdmin from "./features/support/SupportSdkAdmin";
+import SupportSoftwareAdmin from "./features/support/SupportSoftwareAdmin";
+import SupportGuidesAdmin from "./features/support/SupportGuidesAdmin";
+import SupportVideosAdmin from "./features/support/SupportVideosAdmin";
+
+import ContentSalesAdmin from "./features/content/ContentSalesAdmin";
+import ContentTechnicalAdmin from "./features/content/ContentTechnicalAdmin";
+import ContentSubscriptionsAdmin from "./features/content/ContentSubscriptionsAdmin";
+
+
+import FaqPageAdmin from "./features/pages/FaqPageAdmin";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -33,15 +47,40 @@ const AppRoutes = () => (
     >
       <Route index element={<Navigate to="/dashboard" replace />} />
       <Route path="dashboard" element={<DashboardPage />} />
-      <Route path="products" element={<ProductsPage />} />
 
-      {/* --- NEW ROUTES --- */}
-      <Route path="blog" element={<BlogPage />} />
-      <Route path="blog/new" element={<BlogPostForm />} />
-      <Route path="blog/edit/:id" element={<BlogPostForm />} />
-      <Route path="downloads" element={<DownloadsPage />} />
-      <Route path="inquiries" element={<InquiriesPage />} />
-      <Route path="content" element={<ContentPage />} />
+      {/* Pages Routes */}
+      <Route path="pages/home" element={<HomePageAdmin />} />
+      <Route path="pages/about" element={<AboutPageAdmin />} />
+      <Route path="pages/services" element={<ServicesPageAdmin />} />
+      <Route path="pages/blog" element={<BlogPageAdmin />} />
+      <Route path="pages/faq" element={<FaqPageAdmin />} />
+
+      {/* Product Routes */}
+      <Route path="products/cameras" element={<ProductCamerasAdmin />} />
+      <Route path="products/recorders" element={<ProductRecordersAdmin />} />
+      <Route path="products/switches" element={<ProductSwitchesAdmin />} />
+      <Route path="products/systems" element={<ProductSystemsAdmin />} />
+
+      {/* Support Routes */}
+      <Route
+        path="support/downloads/firmware"
+        element={<SupportFirmwareAdmin />}
+      />
+      <Route path="support/downloads/sdk" element={<SupportSdkAdmin />} />
+      <Route
+        path="support/downloads/software"
+        element={<SupportSoftwareAdmin />}
+      />
+      <Route path="support/howto/guides" element={<SupportGuidesAdmin />} />
+      <Route path="support/howto/videos" element={<SupportVideosAdmin />} />
+
+      {/* Content Routes */}
+      <Route path="content/sales" element={<ContentSalesAdmin />} />
+      <Route path="content/technical" element={<ContentTechnicalAdmin />} />
+      <Route
+        path="content/subscriptions"
+        element={<ContentSubscriptionsAdmin />}
+      />
     </Route>
   </Routes>
 );
