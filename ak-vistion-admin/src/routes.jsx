@@ -1,10 +1,19 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
+// Layouts and Pages
 import DashboardLayout from "./layouts/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
+
+// Feature Components
 import DashboardPage from "./features/dashboard/DashboardPage";
 import ProductsPage from "./features/products/ProductsPage";
+import BlogPage from "./features/blog/BlogPage";
+import BlogPostForm from "./features/blog/BlogPostForm";
+import DownloadsPage from "./features/downloads/DownloadsPage";
+import InquiriesPage from "./features/inquiries/InquiriesPage";
+import ContentPage from "./features/content/ContentPage";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -25,7 +34,14 @@ const AppRoutes = () => (
       <Route index element={<Navigate to="/dashboard" replace />} />
       <Route path="dashboard" element={<DashboardPage />} />
       <Route path="products" element={<ProductsPage />} />
-      {/* ADD FUTURE ROUTES HERE: e.g., <Route path="blog" element={<BlogPage />} /> */}
+
+      {/* --- NEW ROUTES --- */}
+      <Route path="blog" element={<BlogPage />} />
+      <Route path="blog/new" element={<BlogPostForm />} />
+      <Route path="blog/edit/:id" element={<BlogPostForm />} />
+      <Route path="downloads" element={<DownloadsPage />} />
+      <Route path="inquiries" element={<InquiriesPage />} />
+      <Route path="content" element={<ContentPage />} />
     </Route>
   </Routes>
 );

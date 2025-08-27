@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Grid, Card, CardContent } from "@mui/material";
+import { Typography, Grid, Card, CardContent, Box } from "@mui/material"; // <-- THE FIX IS HERE
 import { mockApi } from "../../api/mockApi";
 
 const StatCard = ({ title, value, icon }) => (

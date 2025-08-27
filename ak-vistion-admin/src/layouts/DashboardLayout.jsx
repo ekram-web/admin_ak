@@ -19,12 +19,20 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ArticleIcon from "@mui/icons-material/Article";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import MailIcon from "@mui/icons-material/Mail";
+import WebIcon from "@mui/icons-material/Web";
 
 const drawerWidth = 240;
+
+// --- UPDATED MENU ---
 const menuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
   { text: "Products", icon: <InventoryIcon />, path: "/products" },
   { text: "Blog", icon: <ArticleIcon />, path: "/blog" },
+  { text: "Downloads", icon: <CloudDownloadIcon />, path: "/downloads" },
+  { text: "Inquiries", icon: <MailIcon />, path: "/inquiries" },
+  { text: "Page Content", icon: <WebIcon />, path: "/content" },
 ];
 
 const DashboardLayout = () => {
