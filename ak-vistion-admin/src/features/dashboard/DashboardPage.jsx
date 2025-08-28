@@ -1,28 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Grid, Card, CardContent, Box, CircularProgress, List, ListItem, ListItemAvatar, Avatar, ListItemText, Divider, Button, Fab, Menu, MenuItem, ListItemIcon } from '@mui/material';
-import Inventory2Icon from '@mui/icons-material/Inventory2';
-import EmailIcon from '@mui/icons-material/Email';
-import ArticleIcon from '@mui/icons-material/Article';
-import MessageIcon from '@mui/icons-material/Message';
+import { Typography, Grid, Card, CardContent, Box, CircularProgress, List, ListItem, ListItemText, Divider, Button, Fab, Menu, MenuItem, ListItemIcon, Avatar } from '@mui/material';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import MessageOutlinedIcon from '@mui/icons-material/MessageOutlined';
 import AddIcon from '@mui/icons-material/Add';
-import PagesIcon from '@mui/icons-material/Pages';
 import { useNavigate } from 'react-router-dom';
 import { mockApi } from '../../api/mockApi';
 
-// Reusable Stat Card Component - New Minimalist Design
+// Reusable Stat Card Component - Final Professional Design
 const StatCard = ({ title, value, icon }) => (
   <Card variant="outlined" sx={{ borderRadius: 2, height: '100%' }}>
-    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 48, height: 48 }}>{icon}</Avatar>
-      <Box>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>{value}</Typography>
-        <Typography color="text.secondary">{title}</Typography>
-      </Box>
+    <CardContent sx={{ display: 'flex', alignItems: 'center', p: 2, gap: 2 }}>
+        <Avatar sx={{ bgcolor: 'primary.main', color: '#fff', width: 48, height: 48 }}>
+            {icon}
+        </Avatar>
+        <Box>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{value}</Typography>
+            <Typography color="text.secondary" variant="body2">{title}</Typography>
+        </Box>
     </CardContent>
   </Card>
 );
 
-// --- THE NEW HIGH-STANDARD DASHBOARD PAGE ---
+// --- THE FINAL, PROFESSIONAL DASHBOARD PAGE ---
 const DashboardPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ const DashboardPage = () => {
   }
 
   useEffect(() => {
+    // --- THIS IS THE CORRECTED LINE ---
     mockApi.getDashboardStats().then(response => {
         setStats(response.data);
         setLoading(false);
@@ -50,60 +52,77 @@ const DashboardPage = () => {
   if (loading) return <Box sx={{display: 'flex', justifyContent: 'center', mt: 4}}><CircularProgress /></Box>;
 
   return (
-    <Box>
+    <Box sx={{ backgroundColor: '#f9fafb', p: 0, m: -3, minHeight: 'calc(100vh - 64px)' }}>
       {/* --- Header --- */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Dashboard</Typography>
         <Typography color="text.secondary">Welcome to the AK-Vistion Admin Panel</Typography>
       </Box>
 
       {/* --- Stat Cards Section --- */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}><StatCard title="Total Products" value={stats.totalProducts} icon={<Inventory2Icon />} /></Grid>
-        <Grid item xs={12} sm={6} md={3}><StatCard title="Blog Posts" value={stats.totalPosts} icon={<ArticleIcon />} /></Grid>
-        <Grid item xs={12} sm={6} md={3}><StatCard title="Total Messages" value={stats.totalMessages} icon={<MessageIcon />} /></Grid>
-        <Grid item xs={12} sm={6} md={3}><StatCard title="Unread Messages" value={stats.unreadMessages} icon={<EmailIcon />} /></Grid>
+      <Grid container spacing={3} sx={{px: 3}}>
+        <Grid item xs={12} sm={6} md={3}><StatCard title="Total Products" value={stats.totalProducts} icon={<Inventory2OutlinedIcon />} /></Grid>
+        <Grid item xs={12} sm={6} md={3}><StatCard title="Blog Posts" value={stats.totalPosts} icon={<ArticleOutlinedIcon />} /></Grid>
+        <Grid item xs={12} sm={6} md={3}><StatCard title="Total Messages" value={stats.totalMessages} icon={<MessageOutlinedIcon />} /></Grid>
+        <Grid item xs={12} sm={6} md={3}><StatCard title="Unread Messages" value={stats.unreadMessages} icon={<EmailOutlinedIcon />} /></Grid>
       </Grid>
       
       {/* --- Main Content Grid --- */}
-      <Grid container spacing={3} sx={{ mt: 2 }}>
+      <Grid container spacing={3} sx={{ p: 3 }}>
         {/* Left Column: Recent Sales Inquiries */}
         <Grid item xs={12} lg={6}>
-            <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <Card variant="outlined" sx={{ borderRadius: 2, height: '100%' }}>
                 <CardContent>
                     <Typography variant="h6" gutterBottom>Recent Sales Inquiries</Typography>
                     <List sx={{ p: 0 }}>
-                        {stats.recentSales.map((inquiry) => (
-                           <ListItem key={inquiry.id} disablePadding>
-                               <ListItemText
-                                   primary={inquiry.subject}
-                                   secondary={`From: ${inquiry.name} - ${inquiry.date}`}
-                                   primaryTypographyProps={{ fontWeight: inquiry.read ? 'normal' : 'bold' }}
-                               />
-                           </ListItem>
-                        ))}
+                        {stats.recentSales.length > 0 ? stats.recentSales.map((inquiry, index) => (
+                           <React.Fragment key={inquiry.id}>
+                               <ListItem disablePadding>
+                                   <ListItemText
+                                       primaryTypographyProps={{ fontWeight: 'medium', noWrap: true }}
+                                       secondaryTypographyProps={{ noWrap: true }}
+                                       primary={inquiry.subject}
+                                       secondary={`From: ${inquiry.name} - ${inquiry.date}`}
+                                   />
+                               </ListItem>
+                               {index < stats.recentSales.length - 1 && <Divider />}
+                           </React.Fragment>
+                        )) : (
+                            <Typography color="text.secondary" sx={{p: 2, textAlign: 'center'}}>No recent inquiries.</Typography>
+                        )}
                     </List>
-                     <Button size="small" sx={{mt: 2}} onClick={() => navigate('/content/sales')}>View all inquiries →</Button>
+                     <Button size="small" sx={{mt: 2, fontWeight: 'bold'}} onClick={() => navigate('/content/sales')}>
+                         View All Inquiries →
+                     </Button>
                 </CardContent>
             </Card>
         </Grid>
         
         {/* Right Column: Recent Blog Posts */}
         <Grid item xs={12} lg={6}>
-            <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <Card variant="outlined" sx={{ borderRadius: 2, height: '100%' }}>
                  <CardContent>
                     <Typography variant="h6" gutterBottom>Recent Blog Posts</Typography>
                      <List sx={{ p: 0 }}>
-                        {stats.recentBlogPosts.map((post) => (
-                           <ListItem key={post.id} disablePadding>
-                               <ListItemText
-                                   primary={post.title}
-                                   secondary={`By: ${post.author} - ${post.date}`}
-                               />
-                           </ListItem>
-                        ))}
+                        {stats.recentBlogPosts.length > 0 ? stats.recentBlogPosts.map((post, index) => (
+                            <React.Fragment key={post.id}>
+                               <ListItem disablePadding>
+                                   <ListItemText
+                                       primaryTypographyProps={{ fontWeight: 'medium', noWrap: true }}
+                                       secondaryTypographyProps={{ noWrap: true }}
+                                       primary={post.title}
+                                       secondary={`By: ${post.author} - ${post.date}`}
+                                   />
+                               </ListItem>
+                               {index < stats.recentBlogPosts.length - 1 && <Divider />}
+                            </React.Fragment>
+                        )) : (
+                            <Typography color="text.secondary" sx={{p: 2, textAlign: 'center'}}>No recent posts.</Typography>
+                        )}
                     </List>
-                     <Button size="small" sx={{mt: 2}} onClick={() => navigate('/pages/blog')}>View all posts →</Button>
+                     <Button size="small" sx={{mt: 2, fontWeight: 'bold'}} onClick={() => navigate('/pages/blog')}>
+                         View All Posts →
+                     </Button>
                  </CardContent>
             </Card>
         </Grid>
@@ -113,21 +132,23 @@ const DashboardPage = () => {
       <Fab color="primary" sx={{ position: 'fixed', bottom: 32, right: 32 }} onClick={handleFabClick}>
           <AddIcon />
       </Fab>
-      <Menu anchorEl={anchorEl} open={fabOpen} onClose={handleFabClose}>
+      <Menu
+        anchorEl={anchorEl}
+        open={fabOpen}
+        onClose={handleFabClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        elevation={4}
+      >
           <MenuItem onClick={() => handleFabAction('/products/cameras')}>
-              <ListItemIcon><Inventory2Icon fontSize="small" /></ListItemIcon>
+              <ListItemIcon><Inventory2OutlinedIcon fontSize="small" /></ListItemIcon>
               <ListItemText>Add Product</ListItemText>
           </MenuItem>
            <MenuItem onClick={() => handleFabAction('/pages/blog')}>
-              <ListItemIcon><ArticleIcon fontSize="small" /></ListItemIcon>
+              <ListItemIcon><ArticleOutlinedIcon fontSize="small" /></ListItemIcon>
               <ListItemText>Add Blog Post</ListItemText>
           </MenuItem>
-           <MenuItem onClick={() => handleFabAction('/pages/home')}>
-              <ListItemIcon><PagesIcon fontSize="small" /></ListItemIcon>
-              <ListItemText>Edit Homepage</ListItemText>
-          </MenuItem>
       </Menu>
-
     </Box>
   );
 };

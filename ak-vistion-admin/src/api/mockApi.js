@@ -433,6 +433,40 @@ let faqPageData = {
     },
   ],
 };
+// --- NEW: LEGAL PAGES DATA ---
+let legalPageData = {
+    privacy: {
+        lastUpdated: "2025-08-20",
+        content: "<h1>Privacy Policy</h1><p>Welcome to AK VISTION's Privacy Policy. This policy describes how we collect, use, process, and disclose your information...</p>"
+    },
+    terms: {
+        lastUpdated: "2025-08-20",
+        content: "<h1>Terms of Use</h1><p>Welcome to the AK VISTION website. By accessing our site, you agree to these Terms of Use...</p>"
+    },
+    cookies: {
+        lastUpdated: "2025-08-20",
+        content: "<h1>Cookie Policy</h1><p>This policy explains how we use cookies and similar technologies...</p>"
+    }
+};
+
+let footerData = {
+  contactDetails: [
+    {
+      id: 1,
+      type: "Address",
+      value: "123 Security Avenue, Tech Park\nNew York, NY 10001",
+      icon: "MapPinIcon",
+    },
+    { id: 2, type: "Phone", value: "+1 (555) 123-4567", icon: "PhoneIcon" },
+    { id: 3, type: "Email", value: "info@akvision.com", icon: "EnvelopeIcon" },
+    {
+      id: 4,
+      type: "Hours",
+      value: "Mon-Fri: 9:00 AM - 6:00 PM\nSat: 10:00 AM - 2:00 PM",
+      icon: "ClockIcon",
+    },
+  ],
+};
 
 // --- MOCK API FUNCTIONS ---
 export const mockApi = {
@@ -444,6 +478,7 @@ export const mockApi = {
         500
       )
     ),
+
   getDashboardStats: async () =>
     new Promise((res) =>
       setTimeout(
@@ -457,7 +492,6 @@ export const mockApi = {
               unreadMessages:
                 contentData.sales.filter((i) => !i.read).length +
                 contentData.technical.filter((i) => !i.read).length,
-              // Data for the new widgets
               recentSales: contentData.sales.slice(0, 3),
               recentBlogPosts: blogPageData.posts.slice(0, 3),
             },
@@ -468,29 +502,37 @@ export const mockApi = {
   // ... all other getters ...
   getSupportData: async () =>
     new Promise((res) => setTimeout(() => res({ data: supportData }), 500)),
-
-  // Content/Contact Management
   getContentData: async () =>
     new Promise((res) => setTimeout(() => res({ data: contentData }), 500)),
-
-  // FAQ Page Management (WITH FULL CRUD)
   getFaqPageData: async () =>
     new Promise((res) => setTimeout(() => res({ data: faqPageData }), 500)),
-  saveFaq: async (faqData) => {
-    if (faqData.id) {
-      // Update
-      faqPageData.faqs = faqPageData.faqs.map((f) =>
-        f.id === faqData.id ? { ...f, ...faqData } : f
-      );
-    } else {
-      // Create
-      const newId = Math.max(...faqPageData.faqs.map((f) => f.id), 0) + 1;
-      faqPageData.faqs.push({ ...faqData, id: newId });
+
+  // --- NEW: LEGAL PAGE MANAGEMENT ---
+  getLegalData: async () =>
+    new Promise((res) => setTimeout(() => res({ data: legalPageData }), 500)),
+
+  saveLegalPage: async (pageKey, pageData) => {
+    if (legalPageData[pageKey]) {
+      legalPageData[pageKey] = pageData;
     }
     return new Promise((res) => setTimeout(() => res({ success: true }), 500));
   },
-  deleteFaq: async (faqId) => {
-    faqPageData.faqs = faqPageData.faqs.filter((f) => f.id !== faqId);
-    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+
+  // --- NEW: FOOTER MANAGEMENT ---
+  getFooterData: async () => new Promise(res => setTimeout(() => res({ data: footerData }), 500)),
+  
+  saveFooterContactDetail: async (detailData) => {
+    if (detailData.id) { // Update
+      footerData.contactDetails = footerData.contactDetails.map(d => d.id === detailData.id ? { ...d, ...detailData } : d);
+    } else { // Create
+      const newId = Math.max(...footerData.contactDetails.map(d => d.id), 0) + 1;
+      footerData.contactDetails.push({ ...detailData, id: newId });
+    }
+    return new Promise(res => setTimeout(() => res({ success: true }), 500));
   },
+
+  deleteFooterContactDetail: async (detailId) => {
+    footerData.contactDetails = footerData.contactDetails.filter(d => d.id !== detailId);
+    return new Promise(res => setTimeout(() => res({ success: true }), 500));
+  }
 };

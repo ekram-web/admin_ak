@@ -18,13 +18,14 @@ import {
   Typography,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PagesIcon from "@mui/icons-material/Pages";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import EmailIcon from "@mui/icons-material/Email";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
+import GavelIcon from "@mui/icons-material/Gavel";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 const drawerWidth = 280;
@@ -43,6 +44,7 @@ const DashboardLayout = (props) => {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [howtoOpen, setHowtoOpen] = useState(false);
   const [contentOpen, setContentOpen] = useState(false);
+  const [legalOpen, setLegalOpen] = useState(false);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -52,6 +54,7 @@ const DashboardLayout = (props) => {
     <div>
       <Toolbar />
       <List component="nav">
+        {/* --- Dashboard --- */}
         <ListItemButton
           onClick={() => navigate("/dashboard")}
           selected={location.pathname === "/dashboard"}
@@ -75,37 +78,39 @@ const DashboardLayout = (props) => {
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/pages/home")}
-              selected={location.pathname === "/pages/home"}
             >
               <ListItemText primary="Home" />
             </ListItemButton>
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/pages/about")}
-              selected={location.pathname === "/pages/about"}
             >
               <ListItemText primary="About" />
             </ListItemButton>
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/pages/services")}
-              selected={location.pathname === "/pages/services"}
             >
               <ListItemText primary="Service" />
             </ListItemButton>
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/pages/blog")}
-              selected={location.pathname === "/pages/blog"}
             >
               <ListItemText primary="Blog" />
             </ListItemButton>
-
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/pages/faq")}
             >
               <ListItemText primary="FAQ Page" />
+            </ListItemButton>
+
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/pages/footer-contact")}
+            >
+              <ListItemText primary="Footer Contact" />
             </ListItemButton>
           </List>
         </Collapse>
@@ -123,28 +128,24 @@ const DashboardLayout = (props) => {
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/products/cameras")}
-              selected={location.pathname === "/products/cameras"}
             >
               <ListItemText primary="Cameras" />
             </ListItemButton>
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/products/recorders")}
-              selected={location.pathname === "/products/recorders"}
             >
               <ListItemText primary="Recorders" />
             </ListItemButton>
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/products/switches")}
-              selected={location.pathname === "/products/switches"}
             >
               <ListItemText primary="Switches" />
             </ListItemButton>
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/products/systems")}
-              selected={location.pathname === "/products/systems"}
             >
               <ListItemText primary="Systems" />
             </ListItemButton>
@@ -216,7 +217,7 @@ const DashboardLayout = (props) => {
           </List>
         </Collapse>
 
-        {/* --- Content Dropdown --- */}
+        {/* --- Content Dropdown (CORRECTED) --- */}
         <ListItemButton onClick={() => setContentOpen(!contentOpen)}>
           <ListItemIcon>
             <EmailIcon />
@@ -247,7 +248,39 @@ const DashboardLayout = (props) => {
           </List>
         </Collapse>
 
+        {/* --- Legal Dropdown --- */}
+        <ListItemButton onClick={() => setLegalOpen(!legalOpen)}>
+          <ListItemIcon>
+            <GavelIcon />
+          </ListItemIcon>
+          <ListItemText primary="Legal" />
+          {legalOpen ? <ExpandLess /> : <ExpandMore />}
+        </ListItemButton>
+        <Collapse in={legalOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/legal/privacy-policy")}
+            >
+              <ListItemText primary="Privacy Policy" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/legal/terms-of-use")}
+            >
+              <ListItemText primary="Terms of Use" />
+            </ListItemButton>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={() => navigate("/legal/cookie-policy")}
+            >
+              <ListItemText primary="Cookie Policy" />
+            </ListItemButton>
+          </List>
+        </Collapse>
+
         <Divider sx={{ my: 1 }} />
+        {/* --- Logout --- */}
         <ListItemButton
           onClick={() => {
             dispatch(logout());
@@ -287,13 +320,14 @@ const DashboardLayout = (props) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            Admin Panel
+            AK-Vistion Admin Panel
           </Typography>
         </Toolbar>
       </AppBar>
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        aria-label="mailbox folders"
       >
         {/* Mobile Drawer */}
         <Drawer
