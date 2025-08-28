@@ -100,6 +100,7 @@ const FooterContactAdmin = () => {
   const fetchData = () => {
     if (!loading) setLoading(true);
     mockApi.getFooterData().then((res) => {
+      // Correct function call
       setDetails(res.data.contactDetails);
       setLoading(false);
     });
@@ -110,6 +111,7 @@ const FooterContactAdmin = () => {
 
   const handleSave = (detailData) => {
     mockApi.saveFooterContactDetail(detailData).then(() => {
+      // Correct function call
       enqueueSnackbar(
         `Contact Detail ${detailData.id ? "updated" : "added"} successfully!`,
         { variant: "success" }
@@ -123,13 +125,19 @@ const FooterContactAdmin = () => {
       window.confirm("Are you sure you want to delete this contact detail?")
     ) {
       mockApi.deleteFooterContactDetail(detailId).then(() => {
+        // Correct function call
         enqueueSnackbar("Contact Detail deleted!", { variant: "warning" });
         fetchData();
       });
     }
   };
 
-  if (loading) return <CircularProgress />;
+  if (loading)
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>

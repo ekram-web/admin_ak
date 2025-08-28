@@ -106,70 +106,53 @@ let allTechnologies = [
     id: 1,
     name: "AcuSense",
     shortDesc: "Pinpoints human and vehicle targets.",
-    longDesc:
-      "Our advanced AI distinguishes between genuine threats and irrelevant movements, providing you with alerts that are both timely and precise.",
-    imageUrl: "https://picsum.photos/seed/blueprint1/1200/800",
+    longDesc: "Our advanced AI distinguishes...",
+    imageUrl: "",
   },
   {
     id: 2,
     name: "ColorVu",
     shortDesc: "Captures vivid, full-color video 24/7.",
-    longDesc:
-      "Say goodbye to grainy black-and-white footage. ColorVu technology uses advanced sensors and supplemental lighting to render clear, colorful details around the clock.",
-    imageUrl: "https://picsum.photos/seed/blueprint2/1200/800",
+    longDesc: "Say goodbye to grainy footage.",
+    imageUrl: "",
   },
 ];
 
 let homepageData = {
   hero: {
     title: "Empowering Vision for a Safer World",
-    subtitle: "Innovative IoT solutions with video as the core competency",
+    subtitle: "Innovative IoT solutions...",
     videoUrl: "path/to/current/video.mp4",
   },
   featuredItems: [
     {
       id: 1,
       title: "AI Network Cameras",
-      description: "High-performance cameras with AI analytics.",
+      description: "High-performance cameras.",
       imageUrl: "https://picsum.photos/seed/p1/800/1000",
     },
-    {
-      id: 2,
-      title: "Intelligent NVRs",
-      description: "Reliable storage with smart search capabilities.",
-      imageUrl: "https://picsum.photos/seed/p2/800/1000",
-    },
   ],
-  newsroomVideos: [
-    { id: 1, videoUrl: "path/to/news1.mp4" },
-    { id: 2, videoUrl: "path/to/news2.mp4" },
-    { id: 3, videoUrl: "path/to/news3.mp4" },
-  ],
+  newsroomVideos: [{ id: 1, videoUrl: "path/to/news1.mp4" }],
 };
 
 let aboutPageData = {
   inspiring: {
     preTitle: "About Company",
     title: "Creating Inspiring Security Solutions",
-    description:
-      "AK VISTION is a term used to refer to an organized collection of technology, systems, and processes engineered to provide unparalleled security and peace of mind.",
+    description: "AK VISTION is a term...",
   },
   process: {
     visionTitle: "Our Vision",
-    visionDesc:
-      "To be the global leader in security, creating a safer world through continuous innovation.",
+    visionDesc: "To be the global leader...",
     missionTitle: "Our Mission",
-    missionDesc:
-      "To provide state-of-the-art, reliable, and user-friendly systems that protect what matters most.",
+    missionDesc: "To provide state-of-the-art...",
     goalTitle: "Our Goal",
-    goalDesc:
-      "To deliver exceptional service and support, ensuring total client satisfaction and peace of mind.",
+    goalDesc: "To deliver exceptional service...",
   },
   promoVideoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   stats: [
     { id: 1, label: "Years Of Experience", value: 15 },
     { id: 2, label: "Success Projects", value: 600 },
-    { id: 3, label: "Team Members", value: 40 },
   ],
   team: [
     {
@@ -178,24 +161,14 @@ let aboutPageData = {
       title: "Co Founder",
       imageUrl: "https://picsum.photos/seed/ceo/400/500",
     },
-    {
-      id: 2,
-      name: "Daniel Smith",
-      title: "Senior Architect",
-      imageUrl: "https://picsum.photos/seed/cto/400/500",
-    },
   ],
-  partners: [
-    { id: 1, name: "Intaz", logoUrl: "/path/to/intaz.svg" },
-    { id: 2, name: "Qanf", logoUrl: "/path/to/qanf.svg" },
-  ],
+  partners: [{ id: 1, name: "Intaz", logoUrl: "/path/to/intaz.svg" }],
 };
 
 let servicesPageData = {
   header: {
     title: "Our Services",
-    subtitle:
-      "We provide top-tier electronic equipment and expert installation services to meet your needs.",
+    subtitle: "We provide top-tier equipment...",
     imageUrl: "https://picsum.photos/seed/services/600/400",
   },
   productCards: [
@@ -204,31 +177,18 @@ let servicesPageData = {
       name: "Security Cameras",
       imageUrl: "https://picsum.photos/seed/camera/600/400",
     },
-    {
-      id: 2,
-      name: "Network Routers",
-      imageUrl: "https://picsum.photos/seed/router/600/400",
-    },
   ],
   testimonials: [
     {
       id: 1,
-      quote:
-        "AKvision's installation team was incredibly professional and efficient.",
+      quote: "AKvision's installation team was professional.",
       author: "John Doe",
       company: "CEO, Tech Solutions Inc.",
-    },
-    {
-      id: 2,
-      quote: "The quality of the security cameras is outstanding.",
-      author: "Jane Smith",
-      company: "Operations Manager, Retail Group",
     },
   ],
   installation: {
     title: "Professional Installation",
-    description:
-      "Our certified technicians ensure your systems are installed correctly and efficiently...",
+    description: "Our certified technicians ensure...",
   },
   processSteps: {
     step1: "Consultation",
@@ -242,15 +202,14 @@ let blogPageData = {
   posts: [
     {
       id: 1,
-      title: "The Future of AI in Video Surveillance",
+      title: "The Future of AI",
       category: "Technology",
       author: "John Smith",
       date: "2025-03-15",
       readTime: "5 min read",
-      excerpt:
-        "Explore how artificial intelligence is revolutionizing the security industry...",
+      excerpt: "Explore how AI is revolutionizing...",
       imageUrl: "https://picsum.photos/seed/1/600/400",
-      content: "<p>Full blog content here.</p>",
+      content: "<p>Full content.</p>",
     },
   ],
   resources: [
@@ -268,31 +227,26 @@ let blogPageData = {
 let productPagesData = {
   cameras: {
     title: "Cameras",
-    intro:
-      "Experience superior image clarity and reliability with our diverse range of cameras...",
-    heroImage: "https://picsum.photos/seed/camera-hero/1920/1080",
+    intro: "Experience superior image clarity...",
+    heroImage: "",
   },
   recorders: {
     title: "Recorders & Storage",
-    intro:
-      "Optimize your recording and storage with our reliable NVRs, DVRs...",
-    heroImage: "https://picsum.photos/seed/recorder-hero/1920/1080",
+    intro: "Optimize your recording...",
+    heroImage: "",
   },
   switches: {
     title: "Switches & Accessories",
-    intro:
-      "Build a robust foundation for your security network with our high-performance switches...",
-    heroImage: "https://picsum.photos/seed/switch-hero/1920/1080",
+    intro: "Build a robust foundation...",
+    heroImage: "",
   },
   systems: {
     title: "Systems & Smart Devices",
-    intro:
-      "Integrate and automate your security with our advanced systems and smart devices...",
-    heroImage: "https://picsum.photos/seed/system-hero/1920/1080",
+    intro: "Integrate and automate...",
+    heroImage: "",
   },
 };
 
-// --- SUPPORT SECTION DATA ---
 let supportData = {
   downloads: [
     {
@@ -301,154 +255,61 @@ let supportData = {
       name: "Firmware_V1.3.4",
       productModel: "DS-1005KI",
       version: "1.3.4",
-      size: "15.2 MB",
-      releaseDate: "2025-07-20",
-    },
-    {
-      id: 2,
-      type: "Firmware",
-      name: "Firmware_V1.3.1_171012",
-      productModel: "DS-1005KI",
-      version: "1.3.1",
-      size: "14.8 MB",
-      releaseDate: "2025-07-10",
     },
     {
       id: 10,
       type: "SDK",
       name: "Device Network SDK_Win64",
-      description:
-        "Used for secondary development based on device network SDK...",
       version: "6.1.9.48",
-      size: "338.8 MB",
-      releaseDate: "2025-06-14",
     },
     {
       id: 20,
       type: "Software",
       name: "AK-Vistion Pro Client",
-      description: "Centralized management software for all your devices.",
       version: "3.5.0",
-      size: "150.2 MB",
-      releaseDate: "2025-08-01",
     },
   ],
-  guides: [
-    {
-      id: 1,
-      title: "How to install and debug DS-TMG034 radar",
-      category: "ITS",
-      instructions:
-        "1. Install and configure DS-TMG035\n2. Debug the TMG034 Radar",
-      pdfs: [
-        { name: "debug-guide-android.pdf" },
-        { name: "debug-guide-ios.pdf" },
-      ],
-    },
-    {
-      id: 2,
-      title: "How to Use Attendance Service on HikCentral Connect",
-      category: "Software",
-      instructions: "Follow these steps...",
-      pdfs: [],
-    },
-  ],
+  guides: [{ id: 1, title: "How to install DS-TMG034 radar", category: "ITS" }],
   videos: [
-    {
-      id: 1,
-      title: "How to Configure ITS function — Illegal Parking Detection",
-      description:
-        "This video shows how to enable the ITS Illegal Parking Detection function...",
-      date: "2025-07-29",
-      thumbnailUrl: "https://picsum.photos/seed/vid1/400",
-    },
-    {
-      id: 2,
-      title: "How to Use Playback on HikCentral Pro",
-      description:
-        "This video shows how to use HikCentral Pro’s playback tools to search...",
-      date: "2025-07-14",
-      thumbnailUrl: "https://picsum.photos/seed/vid2/400",
-    },
+    { id: 1, title: "How to Configure ITS function", date: "2025-07-29" },
   ],
 };
 
-// --- CONTENT & FAQ DATA (WITH MORE DETAIL) ---
 let contentData = {
   sales: [
     {
       id: 1,
       name: "Bob Johnson",
-      email: "bob@example.com",
-      company: "Biz Inc.",
-      phone: "555-1234",
-      productInterest: "IP Cameras",
+      subject: "Quote for cameras",
       read: false,
       date: "2025-08-27",
-      message:
-        "Please provide a quote for 50x IP Dome Cameras for our new warehouse facility. We need them installed by next month.",
     },
   ],
   technical: [
     {
       id: 1,
       name: "Alice Williams",
-      email: "alice@example.com",
-      phone: "555-5678",
-      productModel: "AK-NC4256",
-      serialNumber: "SN-123XYZ",
-      issueType: "Connectivity",
+      subject: "NVR Issue",
       read: true,
       date: "2025-08-26",
-      message:
-        "My NVR is offline after the recent firmware update. I have tried rebooting it multiple times to no avail.",
     },
   ],
-  subscriptions: [
-    {
-      id: 1,
-      email: "charlie@example.com",
-      firstName: "Charlie",
-      lastName: "Brown",
-      interests: ["product-updates", "events"],
-      frequency: "monthly",
-      date: "2025-08-25",
-    },
-  ],
+  subscriptions: [{ id: 1, email: "charlie@example.com", date: "2025-08-25" }],
 };
 
 let faqPageData = {
   faqs: [
-    {
-      id: 1,
-      question: "How do I reset my camera to factory settings?",
-      answer:
-        "To reset your AK Vision camera to factory settings, press and hold the reset button (usually located on the back or bottom of the camera) for 10 seconds until the indicator light flashes. Please note that this will erase all custom settings.",
-    },
-    {
-      id: 2,
-      question: "What is the default username and password for my NVR?",
-      answer:
-        'The default username for most AK Vision NVRs is "admin" and the default password is "12345". For security reasons, we strongly recommend changing these credentials immediately after your first login.',
-    },
+    { id: 1, question: "How do I reset my camera?", answer: "To reset..." },
   ],
 };
-// --- NEW: LEGAL PAGES DATA ---
+
 let legalPageData = {
-    privacy: {
-        lastUpdated: "2025-08-20",
-        content: "<h1>Privacy Policy</h1><p>Welcome to AK VISTION's Privacy Policy. This policy describes how we collect, use, process, and disclose your information...</p>"
-    },
-    terms: {
-        lastUpdated: "2025-08-20",
-        content: "<h1>Terms of Use</h1><p>Welcome to the AK VISTION website. By accessing our site, you agree to these Terms of Use...</p>"
-    },
-    cookies: {
-        lastUpdated: "2025-08-20",
-        content: "<h1>Cookie Policy</h1><p>This policy explains how we use cookies and similar technologies...</p>"
-    }
+  privacy: { lastUpdated: "2025-08-20", content: "<h1>Privacy Policy</h1>" },
+  terms: { lastUpdated: "2025-08-20", content: "<h1>Terms of Use</h1>" },
+  cookies: { lastUpdated: "2025-08-20", content: "<h1>Cookie Policy</h1>" },
 };
 
+// --- FOOTER DATA ---
 let footerData = {
   contactDetails: [
     {
@@ -467,10 +328,9 @@ let footerData = {
     },
   ],
 };
-
-// --- MOCK API FUNCTIONS ---
+// --- MOCK API FUNCTIONS (DEFINITIVE LIST) ---
 export const mockApi = {
-  // ... (all previous functions like login, getSupportData, etc., remain)
+  // Auth & Dashboard
   login: async () =>
     new Promise((res) =>
       setTimeout(
@@ -478,7 +338,6 @@ export const mockApi = {
         500
       )
     ),
-
   getDashboardStats: async () =>
     new Promise((res) =>
       setTimeout(
@@ -499,40 +358,150 @@ export const mockApi = {
         500
       )
     ),
-  // ... all other getters ...
+
+  // Page Getters
+  getHomepageData: async () =>
+    new Promise((res) => setTimeout(() => res({ data: homepageData }), 500)),
+  getAboutPageData: async () =>
+    new Promise((res) => setTimeout(() => res({ data: aboutPageData }), 500)),
+  getServicesPageData: async () =>
+    new Promise((res) =>
+      setTimeout(() => res({ data: servicesPageData }), 500)
+    ),
+  getBlogPageData: async () =>
+    new Promise((res) => setTimeout(() => res({ data: blogPageData }), 500)),
+  getFaqPageData: async () =>
+    new Promise((res) => setTimeout(() => res({ data: faqPageData }), 500)),
+  getLegalData: async () =>
+    new Promise((res) => setTimeout(() => res({ data: legalPageData }), 500)),
+  getProductPageData: async (category) =>
+    new Promise((res) =>
+      setTimeout(
+        () => res({ data: productPagesData[category.toLowerCase()] }),
+        500
+      )
+    ),
   getSupportData: async () =>
     new Promise((res) => setTimeout(() => res({ data: supportData }), 500)),
   getContentData: async () =>
     new Promise((res) => setTimeout(() => res({ data: contentData }), 500)),
-  getFaqPageData: async () =>
-    new Promise((res) => setTimeout(() => res({ data: faqPageData }), 500)),
 
-  // --- NEW: LEGAL PAGE MANAGEMENT ---
-  getLegalData: async () =>
-    new Promise((res) => setTimeout(() => res({ data: legalPageData }), 500)),
+  // CRUD & Save Handlers
+  saveHomepageData: async (data) => {
+    homepageData = { ...homepageData, ...data };
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  saveAboutPageData: async (data) => {
+    aboutPageData = { ...aboutPageData, ...data };
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  saveServicesPageData: async (data) => {
+    servicesPageData = { ...servicesPageData, ...data };
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  saveBlogPageData: async (data) => {
+    blogPageData = { ...blogPageData, ...data };
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  saveFaq: async (faqData) => {
+    if (faqData.id) {
+      faqPageData.faqs = faqPageData.faqs.map((f) =>
+        f.id === faqData.id ? faqData : f
+      );
+    } else {
+      faqPageData.faqs.push({ ...faqData, id: Date.now() });
+    }
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  deleteFaq: async (faqId) => {
+    faqPageData.faqs = faqPageData.faqs.filter((f) => f.id !== faqId);
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  saveLegalPage: async (key, data) => {
+    legalPageData[key] = data;
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  saveProductPageData: async (cat, data) => {
+    productPagesData[cat.toLowerCase()] = data;
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  saveSupportItem: async (key, item) => {
+    if (item.id) {
+      supportData[key] = supportData[key].map((i) =>
+        i.id === item.id ? item : i
+      );
+    } else {
+      supportData[key].push({ ...item, id: Date.now() });
+    }
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  deleteSupportItem: async (key, id) => {
+    supportData[key] = supportData[key].filter((i) => i.id !== id);
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
 
-  saveLegalPage: async (pageKey, pageData) => {
-    if (legalPageData[pageKey]) {
-      legalPageData[pageKey] = pageData;
+  // Resource Getters
+  getTechnologies: async () =>
+    new Promise((res) => setTimeout(() => res({ data: allTechnologies }), 500)),
+  getBlogPost: async (id) =>
+    new Promise((res) =>
+      setTimeout(
+        () =>
+          res({ data: blogPageData.posts.find((p) => p.id === parseInt(id)) }),
+        500
+      )
+    ),
+  getProductsByCategory: async (category) =>
+    new Promise((res) =>
+      setTimeout(
+        () =>
+          res({
+            data: allProducts.filter(
+              (p) => p.mainCategory.toLowerCase() === category.toLowerCase()
+            ),
+          }),
+        500
+      )
+    ),
+
+  // Resource Savers
+  saveProduct: async (productData) => {
+    if (productData.id) {
+      allProducts = allProducts.map((p) =>
+        p.id === productData.id ? productData : p
+      );
+    } else {
+      allProducts.push({ ...productData, id: Date.now() });
+    }
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+  deleteProduct: async (productId) => {
+    allProducts = allProducts.filter((p) => p.id !== productId);
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
+
+  getFooterData: async () =>
+    new Promise((res) => setTimeout(() => res({ data: footerData }), 500)),
+
+  saveFooterContactDetail: async (detailData) => {
+    if (detailData.id) {
+      // Update
+      footerData.contactDetails = footerData.contactDetails.map((d) =>
+        d.id === detailData.id ? { ...d, ...detailData } : d
+      );
+    } else {
+      // Create
+      const newId =
+        Math.max(...footerData.contactDetails.map((d) => d.id), 0) + 1;
+      footerData.contactDetails.push({ ...detailData, id: newId });
     }
     return new Promise((res) => setTimeout(() => res({ success: true }), 500));
   },
 
-  // --- NEW: FOOTER MANAGEMENT ---
-  getFooterData: async () => new Promise(res => setTimeout(() => res({ data: footerData }), 500)),
-  
-  saveFooterContactDetail: async (detailData) => {
-    if (detailData.id) { // Update
-      footerData.contactDetails = footerData.contactDetails.map(d => d.id === detailData.id ? { ...d, ...detailData } : d);
-    } else { // Create
-      const newId = Math.max(...footerData.contactDetails.map(d => d.id), 0) + 1;
-      footerData.contactDetails.push({ ...detailData, id: newId });
-    }
-    return new Promise(res => setTimeout(() => res({ success: true }), 500));
-  },
-
   deleteFooterContactDetail: async (detailId) => {
-    footerData.contactDetails = footerData.contactDetails.filter(d => d.id !== detailId);
-    return new Promise(res => setTimeout(() => res({ success: true }), 500));
-  }
+    footerData.contactDetails = footerData.contactDetails.filter(
+      (d) => d.id !== detailId
+    );
+    return new Promise((res) => setTimeout(() => res({ success: true }), 500));
+  },
 };

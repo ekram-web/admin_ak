@@ -105,7 +105,6 @@ const DashboardLayout = (props) => {
             >
               <ListItemText primary="FAQ Page" />
             </ListItemButton>
-
             <ListItemButton
               sx={{ pl: 4 }}
               onClick={() => navigate("/pages/footer-contact")}
@@ -217,7 +216,7 @@ const DashboardLayout = (props) => {
           </List>
         </Collapse>
 
-        {/* --- Content Dropdown (CORRECTED) --- */}
+        {/* --- Content Dropdown --- */}
         <ListItemButton onClick={() => setContentOpen(!contentOpen)}>
           <ListItemIcon>
             <EmailIcon />

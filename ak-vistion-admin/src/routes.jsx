@@ -13,6 +13,7 @@ import AboutPageAdmin from "./features/pages/AboutPageAdmin";
 import ServicesPageAdmin from "./features/pages/ServicesPageAdmin";
 import BlogPageAdmin from "./features/pages/BlogPageAdmin";
 import FaqPageAdmin from "./features/pages/FaqPageAdmin";
+import FooterContactAdmin from "./features/pages/FooterContactAdmin";
 
 // Product Management Components
 import ProductCamerasAdmin from "./features/products/ProductCamerasAdmin";
@@ -36,8 +37,6 @@ import ContentSubscriptionsAdmin from "./features/content/ContentSubscriptionsAd
 import PrivacyPolicyAdmin from "./features/legal/PrivacyPolicyAdmin";
 import TermsOfUseAdmin from "./features/legal/TermsOfUseAdmin";
 import CookiePolicyAdmin from "./features/legal/CookiePolicyAdmin";
-
-import FooterContactAdmin from "./features/pages/FooterContactAdmin"; 
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useSelector((state) => state.auth);
