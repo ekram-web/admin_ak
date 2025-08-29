@@ -20,9 +20,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useSnackbar } from "notistack";
-import { mockApi } from "../../api/mockApi";
+import apiClient from "../../api/apiClient";
 
-// Reusable Modal Style
+// --- STYLES FOR MODALS ---
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -35,7 +35,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-// Form Modal for Contact Details
+// --- FORM MODAL for Contact Details ---
 const ContactFormModal = ({ open, handleClose, data, onSave }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -90,6 +90,7 @@ const ContactFormModal = ({ open, handleClose, data, onSave }) => {
   );
 };
 
+// --- MAIN ADMIN PAGE COMPONENT (FINAL INTEGRATED VERSION) ---
 const FooterContactAdmin = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [details, setDetails] = useState([]);
@@ -97,42 +98,81 @@ const FooterContactAdmin = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingDetail, setEditingDetail] = useState(null);
 
-  const fetchData = () => {
+  const fetchData = async () => {
     if (!loading) setLoading(true);
-    mockApi.getFooterData().then((res) => {
-      // Correct function call
-      setDetails(res.data.contactDetails);
+    try {
+      const response = await apiClient.get("/admin/footer-contact-details");
+      setDetails(response.data);
+    } catch (error) {
+      enqueueSnackbar("Failed to load contact details.", { variant: "error" });
+    } finally {
       setLoading(false);
-    });
+    }
   };
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  const handleSave = (detailData) => {
-    mockApi.saveFooterContactDetail(detailData).then(() => {
-      // Correct function call
-      enqueueSnackbar(
-        `Contact Detail ${detailData.id ? "updated" : "added"} successfully!`,
-        { variant: "success" }
-      );
-      fetchData();
-    });
-  };
-
-  const handleDelete = (detailId) => {
-    if (
-      window.confirm("Are you sure you want to delete this contact detail?")
-    ) {
-      mockApi.deleteFooterContactDetail(detailId).then(() => {
-        // Correct function call
-        enqueueSnackbar("Contact Detail deleted!", { variant: "warning" });
-        fetchData();
-      });
+  const handleSave = async (detailData) => {
+    setLoading(true);
+    handleCloseModal();
+    try {
+      if (detailData.id) {
+        // This is an update
+        await apiClient.put(
+          `/admin/footer-contact-details/${detailData.id}`,
+          detailData
+        );
+        enqueueSnackbar("Contact Detail updated successfully!", {
+          variant: "success",
+        });
+      } else {
+        // This is a new creation
+        await apiClient.post("/admin/footer-contact-details", detailData);
+        enqueueSnackbar("Contact Detail added successfully!", {
+          variant: "success",
+        });
+      }
+      await fetchData();
+    } catch (error) {
+      console.error(error.response?.data);
+      enqueueSnackbar("Failed to save contact detail.", { variant: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading)
+  const handleDelete = async (detailId) => {
+    if (
+      window.confirm("Are you sure you want to delete this contact detail?")
+    ) {
+      setLoading(true);
+      try {
+        await apiClient.delete(`/admin/footer-contact-details/${detailId}`);
+        enqueueSnackbar("Contact Detail deleted!", { variant: "warning" });
+        await fetchData();
+      } catch (error) {
+        enqueueSnackbar("Failed to delete contact detail.", {
+          variant: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const openModal = (data = null) => {
+    setEditingDetail(data);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setEditingDetail(null);
+    setModalOpen(false);
+  };
+
+  if (loading && details.length === 0)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
@@ -144,7 +184,7 @@ const FooterContactAdmin = () => {
       {modalOpen && (
         <ContactFormModal
           open={modalOpen}
-          handleClose={() => setModalOpen(false)}
+          handleClose={handleCloseModal}
           data={editingDetail}
           onSave={handleSave}
         />
@@ -161,26 +201,19 @@ const FooterContactAdmin = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => {
-            setEditingDetail(null);
-            setModalOpen(true);
-          }}
+          onClick={() => openModal()}
         >
           Add New Detail
         </Button>
       </Box>
+      {loading && <CircularProgress sx={{ display: "block", mx: "auto" }} />}
       <List>
         {details.map((detail) => (
           <ListItem
             key={detail.id}
             secondaryAction={
               <>
-                <IconButton
-                  onClick={() => {
-                    setEditingDetail(detail);
-                    setModalOpen(true);
-                  }}
-                >
+                <IconButton onClick={() => openModal(detail)}>
                   <EditIcon />
                 </IconButton>
                 <IconButton onClick={() => handleDelete(detail.id)}>

@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { Editor } from "@tinymce/tinymce-react";
 import { useSnackbar } from "notistack";
-import { mockApi } from "../../../api/mockApi";
+import apiClient from "../../../api/apiClient";
 
 const LegalPageLayout = ({ pageTitle, dataKey }) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -17,61 +17,49 @@ const LegalPageLayout = ({ pageTitle, dataKey }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    mockApi
-      .getLegalData()
-      .then((res) => {
-        setPageData(res.data[dataKey]);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch legal data:", err);
-        enqueueSnackbar("Could not load page content.", { variant: "error" });
-        setLoading(false);
-      });
-  }, [dataKey]);
-
-  const handleSave = () => {
-    if (editorRef.current) {
-      setSaving(true);
-      const newContent = editorRef.current.getContent();
-      const newPageData = {
-        ...pageData,
-        content: newContent,
-        lastUpdated: new Date().toISOString().split("T")[0],
-      };
-
-      mockApi.saveLegalPage(dataKey, newPageData).then(() => {
-        enqueueSnackbar(`${pageTitle} saved successfully!`, {
-          variant: "success",
-        });
-        setPageData(newPageData);
-        setSaving(false);
-      });
+  const fetchData = async () => {
+    try {
+      const response = await apiClient.get(`/admin/legal-pages/${dataKey}`);
+      setPageData(response.data);
+    } catch (error) {
+      enqueueSnackbar(`Failed to load ${pageTitle}.`, { variant: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
+  useEffect(() => {
+    fetchData();
+  }, [dataKey]); // Re-fetch when the page changes
+
+  const handleSave = async () => {
+    if (editorRef.current) {
+      setSaving(true);
+      const newContent = editorRef.current.getContent();
+      try {
+        await apiClient.post(`/admin/legal-pages/${dataKey}`, {
+          content: newContent,
+        });
+        enqueueSnackbar(`${pageTitle} saved successfully!`, {
+          variant: "success",
+        });
+        await fetchData(); // Refresh data to get new "last_updated" timestamp
+      } catch (error) {
+        enqueueSnackbar(`Failed to save ${pageTitle}.`, { variant: "error" });
+      } finally {
+        setSaving(false);
+      }
+    }
+  };
+
+  if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
       </Box>
     );
-  }
-
-  // --- THIS IS THE CRITICAL FIX ---
-  // If loading is finished but there's no data, prevent a crash.
-  if (!pageData) {
-    return (
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h5" color="error">
-          Error: Content could not be loaded.
-        </Typography>
-        <Typography>Please check the API or mock data source.</Typography>
-      </Paper>
-    );
-  }
+  if (!pageData)
+    return <Typography color="error">Could not load page content.</Typography>;
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
@@ -93,11 +81,11 @@ const LegalPageLayout = ({ pageTitle, dataKey }) => {
         </Button>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Last Updated: {pageData.lastUpdated}
+        Last Updated: {new Date(pageData.last_updated).toLocaleDateString()}
       </Typography>
 
       <Editor
-        apiKey="YOUR_TINYMCE_API_KEY" // IMPORTANT: Get a free key from tiny.cloud
+        apiKey="k9afunq1eckzt1z9skcz31ex7rqxcc59zzcthny5hva5b339" // IMPORTANT: Get a free key from tiny.cloud
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue={pageData.content}
         init={{
