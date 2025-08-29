@@ -522,7 +522,6 @@
 // export default HomePageAdmin;
 
 // ??
-
 import React, { useState, useEffect } from "react";
 import {
   Paper,
@@ -684,17 +683,17 @@ const TechnologyFormModal = ({ open, handleClose, tech, onSave }) => (
         sx={{ mb: 2 }}
       />
       <TextField
-        name="shortDesc"
+        name="short_desc"
         label="Short Description"
-        defaultValue={tech?.shortDesc}
+        defaultValue={tech?.short_desc}
         fullWidth
         required
         sx={{ mb: 2 }}
       />
       <TextField
-        name="longDesc"
+        name="long_desc"
         label="Long Description"
-        defaultValue={tech?.longDesc}
+        defaultValue={tech?.long_desc}
         fullWidth
         multiline
         rows={4}
@@ -756,7 +755,7 @@ const NewsroomVideoFormModal = ({ open, handleClose, onSave }) => (
 const HomePageAdmin = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
-  const [pageData, setPageData] = useState(null);
+  const [pageData, setPageData] = useState({ hero: {} });
   const [technologies, setTechnologies] = useState([]);
   const [featuredItems, setFeaturedItems] = useState([]);
   const [newsroomVideos, setNewsroomVideos] = useState([]);
@@ -794,34 +793,24 @@ const HomePageAdmin = () => {
     setModalContent(type);
     setModalOpen(true);
   };
-
   const handleCloseModal = () => {
     setModalOpen(false);
     setEditingItem(null);
   };
 
-  const handleContentSave = async (sectionKey, formData) => {
-    try {
-      await apiClient.post("/admin/pages/homepage", {
-        [sectionKey]: Object.fromEntries(formData.entries()),
-      });
-      enqueueSnackbar("Hero Section updated!", { variant: "success" });
-      fetchData();
-    } catch (error) {
-      console.error(error.response?.data);
-      enqueueSnackbar("Failed to save Hero section.", { variant: "error" });
-    }
-  };
-
-  const handleCrudSave = async (endpoint, formData, itemType, itemId) => {
+  const handleSave = async (endpoint, formData, itemType, itemId) => {
+    setLoading(true);
+    handleCloseModal();
     try {
       const isUpdate = !!itemId;
       const url = isUpdate ? `${endpoint}/${itemId}` : endpoint;
 
+      // For updates with FormData, Laravel needs a _method field.
       if (isUpdate) {
         formData.append("_method", "PUT");
       }
 
+      // We always use POST for FormData to properly handle file uploads and method spoofing.
       await apiClient.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -829,12 +818,15 @@ const HomePageAdmin = () => {
       enqueueSnackbar(`${itemType} ${isUpdate ? "updated" : "added"}!`, {
         variant: "success",
       });
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error(error.response?.data);
-      enqueueSnackbar(`Failed to save ${itemType.toLowerCase()}.`, {
-        variant: "error",
-      });
+      enqueueSnackbar(
+        `Failed to save ${itemType.toLowerCase()}. Check console for details.`,
+        { variant: "error" }
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -844,19 +836,22 @@ const HomePageAdmin = () => {
         `Are you sure you want to delete this ${itemType.toLowerCase()}?`
       )
     ) {
+      setLoading(true);
       try {
         await apiClient.delete(`${endpoint}/${itemId}`);
         enqueueSnackbar(`${itemType} deleted!`, { variant: "warning" });
-        fetchData();
+        await fetchData();
       } catch (error) {
         enqueueSnackbar(`Failed to delete ${itemType.toLowerCase()}.`, {
           variant: "error",
         });
+      } finally {
+        setLoading(false);
       }
     }
   };
 
-  if (loading)
+  if (loading && !pageData)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
@@ -873,15 +868,15 @@ const HomePageAdmin = () => {
         Manage Homepage Content
       </Typography>
 
+      {/* --- Modals --- */}
       {modalOpen && modalContent === "hero" && (
         <HeroFormModal
           open={modalOpen}
           handleClose={handleCloseModal}
           data={editingItem}
-          onSave={(formData) => {
-            handleContentSave("hero", formData);
-            handleCloseModal();
-          }}
+          onSave={(formData) =>
+            handleSave("/admin/pages/homepage", formData, "Hero Section")
+          }
         />
       )}
       {modalOpen && modalContent === "feature" && (
@@ -889,15 +884,14 @@ const HomePageAdmin = () => {
           open={modalOpen}
           handleClose={handleCloseModal}
           data={editingItem}
-          onSave={(formData) => {
-            handleCrudSave(
+          onSave={(formData) =>
+            handleSave(
               "/admin/featured-items",
               formData,
               "Featured Item",
               editingItem?.id
-            );
-            handleCloseModal();
-          }}
+            )
+          }
         />
       )}
       {modalOpen && modalContent === "tech" && (
@@ -905,32 +899,27 @@ const HomePageAdmin = () => {
           open={modalOpen}
           handleClose={handleCloseModal}
           tech={editingItem}
-          onSave={(formData) => {
-            handleCrudSave(
+          onSave={(formData) =>
+            handleSave(
               "/admin/technologies",
               formData,
               "Technology",
               editingItem?.id
-            );
-            handleCloseModal();
-          }}
+            )
+          }
         />
       )}
       {modalOpen && modalContent === "news" && (
         <NewsroomVideoFormModal
           open={modalOpen}
           handleClose={handleCloseModal}
-          onSave={(formData) => {
-            handleCrudSave(
-              "/admin/newsroom-videos",
-              formData,
-              "Newsroom Video"
-            );
-            handleCloseModal();
-          }}
+          onSave={(formData) =>
+            handleSave("/admin/newsroom-videos", formData, "Newsroom Video")
+          }
         />
       )}
 
+      {/* --- Accordions --- */}
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6">Hero Section</Typography>
@@ -1039,7 +1028,7 @@ const HomePageAdmin = () => {
                   </>
                 }
               >
-                <ListItemText primary={tech.name} secondary={tech.shortDesc} />
+                <ListItemText primary={tech.name} secondary={tech.short_desc} />
               </ListItem>
             ))}
           </List>

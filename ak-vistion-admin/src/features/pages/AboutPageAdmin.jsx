@@ -5,25 +5,25 @@ import {
   Box,
   TextField,
   Button,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Modal,
+  IconButton,
+  CircularProgress,
   List,
   ListItem,
   ListItemText,
-  IconButton,
-  CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Avatar,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import VideoFileIcon from "@mui/icons-material/VideoFile";
 import ImageIcon from "@mui/icons-material/Image";
+import VideoFileIcon from "@mui/icons-material/VideoFile";
 import { useSnackbar } from "notistack";
-import { mockApi } from "../../api/mockApi";
+import apiClient from "../../api/apiClient";
 
 // --- STYLES FOR MODALS ---
 const modalStyle = {
@@ -38,7 +38,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-// --- GENERIC FORM MODAL (for Stats, Team, Partners) ---
+// --- GENERIC FORM MODAL (Used for Stats, Team, and Partners) ---
 const FormModal = ({
   open,
   handleClose,
@@ -50,13 +50,11 @@ const FormModal = ({
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const data = { id: initialData?.id };
-    fields.forEach((field) => {
-      if (field.type !== "file") {
-        data[field.name] = formData.get(field.name);
-      }
-    });
-    onSave(data);
+    // Add the ID back for update operations
+    if (initialData?.id) {
+      formData.append("id", initialData.id);
+    }
+    onSave(formData);
     handleClose();
   };
   return (
@@ -75,7 +73,12 @@ const FormModal = ({
               sx={{ mb: 2, width: "100%" }}
             >
               {field.label}
-              <input type="file" accept={field.accept} hidden />
+              <input
+                type="file"
+                name={field.name}
+                accept={field.accept}
+                hidden
+              />
             </Button>
           ) : (
             <TextField
@@ -86,6 +89,8 @@ const FormModal = ({
               fullWidth
               required
               type={field.type || "text"}
+              multiline={field.multiline}
+              rows={field.rows}
               sx={{ mb: 2 }}
             />
           )
@@ -101,22 +106,37 @@ const FormModal = ({
   );
 };
 
-// --- MAIN ADMIN PAGE COMPONENT ---
+// --- MAIN ADMIN PAGE COMPONENT (FINAL VERSION) ---
 const AboutPageAdmin = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [aboutData, setAboutData] = useState(null);
+  const [pageData, setPageData] = useState(null);
+  const [team, setTeam] = useState([]);
+  const [stats, setStats] = useState([]);
+  const [partners, setPartners] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
 
-  const fetchData = () => {
-    if (!loading) setLoading(true);
-    mockApi.getAboutPageData().then((res) => {
-      setAboutData(res.data);
+  const fetchData = async () => {
+    try {
+      const [pageRes, teamRes, statsRes, partnersRes] = await Promise.all([
+        apiClient.get("/admin/pages/about"),
+        apiClient.get("/admin/team-members"),
+        apiClient.get("/admin/statistics"),
+        apiClient.get("/admin/partners"),
+      ]);
+      setPageData(pageRes.data);
+      setTeam(teamRes.data);
+      setStats(statsRes.data);
+      setPartners(partnersRes.data);
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to load About page data!", { variant: "error" });
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   useEffect(() => {
@@ -127,54 +147,74 @@ const AboutPageAdmin = () => {
     setModalConfig(config);
     setModalOpen(true);
   };
+  const handleCloseModal = () => setModalOpen(false);
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-  };
-
-  // Generic handler for simple form saves (Inspiring Spaces, etc.)
-  const handleSectionSave = async (sectionKey, event, sectionName) => {
+  const handleContentSave = async (sectionKey, event) => {
     event.preventDefault();
     setSaving(true);
     const formData = new FormData(event.currentTarget);
-    const newData = {};
-    for (let [key, value] of formData.entries()) {
-      newData[key] = value;
-    }
-    await mockApi.saveAboutPageData({ [sectionKey]: newData });
-    enqueueSnackbar(`${sectionName} section updated successfully!`, {
-      variant: "success",
-    });
-    fetchData();
-    setSaving(false);
-  };
-
-  // CRUD handler for lists (Stats, Team, Partners)
-  const handleCrudSave = (sectionKey, itemData, itemType) => {
-    const updatedList = itemData.id
-      ? aboutData[sectionKey].map((item) =>
-          item.id === itemData.id ? { ...item, ...itemData } : item
-        )
-      : [...aboutData[sectionKey], { ...itemData, id: Date.now() }];
-
-    mockApi.saveAboutPageData({ [sectionKey]: updatedList }).then(() => {
+    const data = Object.fromEntries(formData.entries());
+    try {
+      await apiClient.post("/admin/pages/about", { [sectionKey]: data });
       enqueueSnackbar(
-        `${itemType} ${itemData.id ? "updated" : "added"} successfully!`,
+        `${
+          sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)
+        } section updated!`,
         { variant: "success" }
       );
-      fetchData();
-    });
+      await fetchData();
+    } catch (error) {
+      enqueueSnackbar("Failed to save content.", { variant: "error" });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleCrudDelete = (sectionKey, itemId, itemType) => {
-    if (window.confirm(`Are you sure you want to delete this ${itemType}?`)) {
-      const updatedList = aboutData[sectionKey].filter(
-        (item) => item.id !== itemId
-      );
-      mockApi.saveAboutPageData({ [sectionKey]: updatedList }).then(() => {
-        enqueueSnackbar(`${itemType} deleted!`, { variant: "warning" });
-        fetchData();
+  const handleCrudSave = async (endpoint, formData, itemType, itemId) => {
+    setLoading(true);
+    handleCloseModal();
+    try {
+      const isUpdate = !!itemId;
+      const url = isUpdate ? `${endpoint}/${itemId}` : endpoint;
+      if (isUpdate) {
+        formData.append("_method", "POST");
+      }
+
+      await apiClient.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+      enqueueSnackbar(`${itemType} ${isUpdate ? "updated" : "added"}!`, {
+        variant: "success",
+      });
+      await fetchData();
+    } catch (error) {
+      console.error(error.response?.data);
+      enqueueSnackbar(`Failed to save ${itemType.toLowerCase()}.`, {
+        variant: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCrudDelete = async (endpoint, itemId, itemType) => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete this ${itemType.toLowerCase()}?`
+      )
+    ) {
+      setLoading(true);
+      try {
+        await apiClient.delete(`${endpoint}/${itemId}`);
+        enqueueSnackbar(`${itemType} deleted!`, { variant: "warning" });
+        await fetchData();
+      } catch (error) {
+        enqueueSnackbar(`Failed to delete ${itemType.toLowerCase()}.`, {
+          variant: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -183,6 +223,10 @@ const AboutPageAdmin = () => {
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
       </Box>
+    );
+  if (!pageData)
+    return (
+      <Typography color="error">Could not load initial page data.</Typography>
     );
 
   return (
@@ -205,23 +249,21 @@ const AboutPageAdmin = () => {
         </AccordionSummary>
         <AccordionDetails
           component="form"
-          onSubmit={(e) =>
-            handleSectionSave("inspiring", e, "Inspiring Spaces")
-          }
+          onSubmit={(e) => handleContentSave("inspiring", e)}
         >
           <TextField
             name="preTitle"
             label="Pre-title"
             fullWidth
             sx={{ mb: 2 }}
-            defaultValue={aboutData.inspiring.preTitle}
+            defaultValue={pageData.inspiring?.preTitle}
           />
           <TextField
             name="title"
             label="Main Title"
             fullWidth
             sx={{ mb: 2 }}
-            defaultValue={aboutData.inspiring.title}
+            defaultValue={pageData.inspiring?.title}
           />
           <TextField
             name="description"
@@ -230,7 +272,7 @@ const AboutPageAdmin = () => {
             multiline
             rows={4}
             sx={{ mb: 2 }}
-            defaultValue={aboutData.inspiring.description}
+            defaultValue={pageData.inspiring?.description}
           />
           <Button type="submit" variant="contained" disabled={saving}>
             {saving ? <CircularProgress size={24} /> : "Save Section"}
@@ -244,14 +286,14 @@ const AboutPageAdmin = () => {
         </AccordionSummary>
         <AccordionDetails
           component="form"
-          onSubmit={(e) => handleSectionSave("process", e, "Working Process")}
+          onSubmit={(e) => handleContentSave("process", e)}
         >
           <TextField
             name="visionTitle"
             label="Vision Title"
             fullWidth
             sx={{ mb: 1 }}
-            defaultValue={aboutData.process.visionTitle}
+            defaultValue={pageData.process?.visionTitle}
           />
           <TextField
             name="visionDesc"
@@ -260,14 +302,14 @@ const AboutPageAdmin = () => {
             multiline
             rows={2}
             sx={{ mb: 2 }}
-            defaultValue={aboutData.process.visionDesc}
+            defaultValue={pageData.process?.visionDesc}
           />
           <TextField
             name="missionTitle"
             label="Mission Title"
             fullWidth
             sx={{ mb: 1 }}
-            defaultValue={aboutData.process.missionTitle}
+            defaultValue={pageData.process?.missionTitle}
           />
           <TextField
             name="missionDesc"
@@ -276,14 +318,14 @@ const AboutPageAdmin = () => {
             multiline
             rows={2}
             sx={{ mb: 2 }}
-            defaultValue={aboutData.process.missionDesc}
+            defaultValue={pageData.process?.missionDesc}
           />
           <TextField
             name="goalTitle"
             label="Goal Title"
             fullWidth
             sx={{ mb: 1 }}
-            defaultValue={aboutData.process.goalTitle}
+            defaultValue={pageData.process?.goalTitle}
           />
           <TextField
             name="goalDesc"
@@ -292,48 +334,10 @@ const AboutPageAdmin = () => {
             multiline
             rows={2}
             sx={{ mb: 2 }}
-            defaultValue={aboutData.process.goalDesc}
+            defaultValue={pageData.process?.goalDesc}
           />
           <Button type="submit" variant="contained" disabled={saving}>
             {saving ? <CircularProgress size={24} /> : "Save Process"}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Promo Video</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Current Video: {aboutData.promoVideoUrl}
-          </Typography>
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={<VideoFileIcon />}
-            sx={{ mr: 2 }}
-          >
-            Upload Video
-            <input type="file" accept="video/*" hidden />
-          </Button>
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={<ImageIcon />}
-          >
-            Upload Poster Image
-            <input type="file" accept="image/*" hidden />
-          </Button>
-          <br />
-          <Button
-            variant="contained"
-            sx={{ mt: 2 }}
-            onClick={() =>
-              enqueueSnackbar("Video Saved!", { variant: "success" })
-            }
-          >
-            Save Video
           </Button>
         </AccordionDetails>
       </Accordion>
@@ -344,7 +348,7 @@ const AboutPageAdmin = () => {
         </AccordionSummary>
         <AccordionDetails>
           <List>
-            {aboutData.stats.map((stat) => (
+            {stats.map((stat) => (
               <ListItem
                 key={stat.id}
                 secondaryAction={
@@ -355,18 +359,25 @@ const AboutPageAdmin = () => {
                           title: "Edit Stat",
                           fields: [
                             { name: "label", label: "Label" },
-                            { name: "value", label: "Value", type: "number" },
+                            { name: "value", label: "Value" },
                           ],
                           initialData: stat,
-                          onSave: (data) =>
-                            handleCrudSave("stats", data, "Stat"),
+                          onSave: (formData) =>
+                            handleCrudSave(
+                              "/admin/statistics",
+                              formData,
+                              "Stat",
+                              stat.id
+                            ),
                         })
                       }
                     >
                       <EditIcon />
                     </IconButton>
                     <IconButton
-                      onClick={() => handleCrudDelete("stats", stat.id, "Stat")}
+                      onClick={() =>
+                        handleCrudDelete("/admin/statistics", stat.id, "Stat")
+                      }
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -388,9 +399,10 @@ const AboutPageAdmin = () => {
                 title: "Add New Stat",
                 fields: [
                   { name: "label", label: "Label" },
-                  { name: "value", label: "Value", type: "number" },
+                  { name: "value", label: "Value" },
                 ],
-                onSave: (data) => handleCrudSave("stats", data, "Stat"),
+                onSave: (formData) =>
+                  handleCrudSave("/admin/statistics", formData, "Stat"),
               })
             }
           >
@@ -405,7 +417,7 @@ const AboutPageAdmin = () => {
         </AccordionSummary>
         <AccordionDetails>
           <List>
-            {aboutData.team.map((member) => (
+            {team.map((member) => (
               <ListItem
                 key={member.id}
                 secondaryAction={
@@ -426,8 +438,13 @@ const AboutPageAdmin = () => {
                             },
                           ],
                           initialData: member,
-                          onSave: (data) =>
-                            handleCrudSave("team", data, "Team Member"),
+                          onSave: (formData) =>
+                            handleCrudSave(
+                              "/admin/team-members",
+                              formData,
+                              "Team Member",
+                              member.id
+                            ),
                         })
                       }
                     >
@@ -435,7 +452,11 @@ const AboutPageAdmin = () => {
                     </IconButton>
                     <IconButton
                       onClick={() =>
-                        handleCrudDelete("team", member.id, "Team Member")
+                        handleCrudDelete(
+                          "/admin/team-members",
+                          member.id,
+                          "Team Member"
+                        )
                       }
                     >
                       <DeleteIcon />
@@ -443,7 +464,14 @@ const AboutPageAdmin = () => {
                   </>
                 }
               >
-                <Avatar src={member.imageUrl} sx={{ mr: 2 }} />
+                <Avatar
+                  src={
+                    member.image_url
+                      ? `http://127.0.0.1:8000/storage/${member.image_url}`
+                      : ""
+                  }
+                  sx={{ mr: 2 }}
+                />
                 <ListItemText primary={member.name} secondary={member.title} />
               </ListItem>
             ))}
@@ -465,7 +493,12 @@ const AboutPageAdmin = () => {
                     accept: "image/*",
                   },
                 ],
-                onSave: (data) => handleCrudSave("team", data, "Team Member"),
+                onSave: (formData) =>
+                  handleCrudSave(
+                    "/admin/team-members",
+                    formData,
+                    "Team Member"
+                  ),
               })
             }
           >
@@ -480,7 +513,7 @@ const AboutPageAdmin = () => {
         </AccordionSummary>
         <AccordionDetails>
           <List>
-            {aboutData.partners.map((partner) => (
+            {partners.map((partner) => (
               <ListItem
                 key={partner.id}
                 secondaryAction={
@@ -500,8 +533,13 @@ const AboutPageAdmin = () => {
                             },
                           ],
                           initialData: partner,
-                          onSave: (data) =>
-                            handleCrudSave("partners", data, "Partner"),
+                          onSave: (formData) =>
+                            handleCrudSave(
+                              "/admin/partners",
+                              formData,
+                              "Partner",
+                              partner.id
+                            ),
                         })
                       }
                     >
@@ -509,7 +547,11 @@ const AboutPageAdmin = () => {
                     </IconButton>
                     <IconButton
                       onClick={() =>
-                        handleCrudDelete("partners", partner.id, "Partner")
+                        handleCrudDelete(
+                          "/admin/partners",
+                          partner.id,
+                          "Partner"
+                        )
                       }
                     >
                       <DeleteIcon />
@@ -519,7 +561,11 @@ const AboutPageAdmin = () => {
               >
                 <Avatar
                   variant="rounded"
-                  src={partner.logoUrl}
+                  src={
+                    partner.logo_url
+                      ? `http://127.0.0.1:8000/storage/${partner.logo_url}`
+                      : ""
+                  }
                   sx={{ mr: 2, bgcolor: "grey.300" }}
                 >
                   <ImageIcon />
@@ -544,7 +590,8 @@ const AboutPageAdmin = () => {
                     accept: "image/*",
                   },
                 ],
-                onSave: (data) => handleCrudSave("partners", data, "Partner"),
+                onSave: (formData) =>
+                  handleCrudSave("/admin/partners", formData, "Partner"),
               })
             }
           >

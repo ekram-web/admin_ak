@@ -13,6 +13,12 @@ const SupportSoftwareAdmin = () => {
     { name: "version", label: "Version" },
     { name: "size", label: "File Size (e.g., 150.2 MB)" },
     { name: "description", label: "Description", multiline: true, rows: 4 },
+    {
+      name: "type",
+      label: "Type",
+      type: "select",
+      options: ["Software", "Firmware", "SDK"],
+    },
     { name: "file", label: "Upload File", type: "file" },
   ];
 
@@ -20,7 +26,7 @@ const SupportSoftwareAdmin = () => {
     <SupportPageLayout
       pageTitle="Software"
       itemType="Software"
-      dataKey="downloads"
+      endpoint="/admin/support-files"
       filterFn={(item) => item.type === "Software"}
       columns={columns}
       formFields={formFields}

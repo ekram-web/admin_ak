@@ -11,8 +11,14 @@ const SupportSdkAdmin = () => {
   const formFields = [
     { name: "name", label: "SDK Name" },
     { name: "version", label: "Version" },
-    { name: "size", label: "File Size (e.g., 338.8 MB)" },
+    { name: "size", label: "File Size (e.g., 12.5 MB)" },
     { name: "description", label: "Description", multiline: true, rows: 4 },
+    {
+      name: "type",
+      label: "Type",
+      type: "select",
+      options: ["SDK", "Firmware", "Software"],
+    },
     { name: "file", label: "Upload File", type: "file" },
   ];
 
@@ -20,7 +26,7 @@ const SupportSdkAdmin = () => {
     <SupportPageLayout
       pageTitle="SDK"
       itemType="SDK"
-      dataKey="downloads"
+      endpoint="/admin/support-files"
       filterFn={(item) => item.type === "SDK"}
       columns={columns}
       formFields={formFields}
