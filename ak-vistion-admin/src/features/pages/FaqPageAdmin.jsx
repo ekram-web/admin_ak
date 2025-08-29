@@ -16,9 +16,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useSnackbar } from "notistack";
-import { mockApi } from "../../api/mockApi";
+import apiClient from "../../api/apiClient";
 
-// Reusable Modal Style
+// --- STYLES FOR MODALS ---
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -31,7 +31,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-// Reusable Form Modal for FAQs
+// --- FORM MODAL for FAQs ---
 const FaqFormModal = ({ open, handleClose, data, onSave }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -65,7 +65,7 @@ const FaqFormModal = ({ open, handleClose, data, onSave }) => {
           fullWidth
           required
           multiline
-          rows={6}
+          rows={8}
           sx={{ mb: 2 }}
         />
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
@@ -79,6 +79,7 @@ const FaqFormModal = ({ open, handleClose, data, onSave }) => {
   );
 };
 
+// --- MAIN ADMIN PAGE COMPONENT (FINAL INTEGRATED VERSION) ---
 const FaqPageAdmin = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [faqs, setFaqs] = useState([]);
@@ -86,43 +87,81 @@ const FaqPageAdmin = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFaq, setEditingFaq] = useState(null);
 
-  const fetchData = () => {
+  const fetchData = async () => {
     if (!loading) setLoading(true);
-    mockApi.getFaqPageData().then((res) => {
-      setFaqs(res.data.faqs);
+    try {
+      const response = await apiClient.get("/admin/faqs");
+      setFaqs(response.data);
+    } catch (error) {
+      enqueueSnackbar("Failed to load FAQs.", { variant: "error" });
+    } finally {
       setLoading(false);
-    });
+    }
   };
   useEffect(() => {
     fetchData();
   }, []);
 
-  const handleSave = (faqData) => {
-    mockApi.saveFaq(faqData).then(() => {
-      enqueueSnackbar(`FAQ ${faqData.id ? "updated" : "added"} successfully!`, {
-        variant: "success",
-      });
-      fetchData();
-    });
-  };
-
-  const handleDelete = (faqId) => {
-    if (window.confirm("Are you sure you want to delete this FAQ?")) {
-      mockApi.deleteFaq(faqId).then(() => {
-        enqueueSnackbar("FAQ deleted!", { variant: "warning" });
-        fetchData();
-      });
+  const handleSave = async (faqData) => {
+    setLoading(true);
+    handleCloseModal();
+    try {
+      if (faqData.id) {
+        // Update
+        await apiClient.put(`/admin/faqs/${faqData.id}`, faqData);
+        enqueueSnackbar("FAQ updated successfully!", { variant: "success" });
+      } else {
+        // Create
+        await apiClient.post("/admin/faqs", faqData);
+        enqueueSnackbar("FAQ added successfully!", { variant: "success" });
+      }
+      await fetchData();
+    } catch (error) {
+      console.error(error.response?.data);
+      enqueueSnackbar("Failed to save FAQ.", { variant: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <CircularProgress />;
+  const handleDelete = async (faqId) => {
+    if (window.confirm("Are you sure you want to delete this FAQ?")) {
+      setLoading(true);
+      try {
+        await apiClient.delete(`/admin/faqs/${faqId}`);
+        enqueueSnackbar("FAQ deleted!", { variant: "warning" });
+        await fetchData();
+      } catch (error) {
+        enqueueSnackbar("Failed to delete FAQ.", { variant: "error" });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const openModal = (data = null) => {
+    setEditingFaq(data);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setEditingFaq(null);
+    setModalOpen(false);
+  };
+
+  if (loading && faqs.length === 0)
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
       {modalOpen && (
         <FaqFormModal
           open={modalOpen}
-          handleClose={() => setModalOpen(false)}
+          handleClose={handleCloseModal}
           data={editingFaq}
           onSave={handleSave}
         />
@@ -139,26 +178,21 @@ const FaqPageAdmin = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => {
-            setEditingFaq(null);
-            setModalOpen(true);
-          }}
+          onClick={() => openModal()}
         >
           Add New FAQ
         </Button>
       </Box>
+      {loading && (
+        <CircularProgress sx={{ display: "block", mx: "auto", mb: 2 }} />
+      )}
       <List>
         {faqs.map((faq) => (
           <ListItem
             key={faq.id}
             secondaryAction={
               <>
-                <IconButton
-                  onClick={() => {
-                    setEditingFaq(faq);
-                    setModalOpen(true);
-                  }}
-                >
+                <IconButton onClick={() => openModal(faq)}>
                   <EditIcon />
                 </IconButton>
                 <IconButton onClick={() => handleDelete(faq.id)}>
