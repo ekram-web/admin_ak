@@ -2,8 +2,8 @@ import React from "react";
 import InboxLayout from "./components/InboxLayout";
 import { Box, Typography, Divider, Grid } from "@mui/material";
 
-// Detail component specific to Technical inquiries
-const TechnicalDetail = ({ data }) => (
+// Detail component for Technical inquiries
+const TechnicalDetail = ({ data, createdAt }) => (
   <Box>
     <Typography variant="h5" gutterBottom>
       Technical Support Ticket
@@ -12,7 +12,7 @@ const TechnicalDetail = ({ data }) => (
       From: {data.name} &lt;{data.email}&gt;
     </Typography>
     <Typography variant="body2" color="text.secondary">
-      Received: {data.date}
+      Received: {new Date(createdAt).toLocaleString()}
     </Typography>
     <Divider sx={{ my: 2 }} />
     <Grid container spacing={2}>
@@ -41,7 +41,7 @@ const TechnicalDetail = ({ data }) => (
         borderRadius: 1,
       }}
     >
-      {data.message}
+      {data.description}
     </Typography>
   </Box>
 );
@@ -50,7 +50,8 @@ const ContentTechnicalAdmin = () => {
   return (
     <InboxLayout
       pageTitle="Technical Inquiries"
-      dataKey="technical"
+      itemType="Technical Ticket"
+      dataKey="Technical" // MUST match the 'type' string
       DetailComponent={TechnicalDetail}
     />
   );

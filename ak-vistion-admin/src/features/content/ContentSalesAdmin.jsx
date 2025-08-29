@@ -2,8 +2,8 @@ import React from "react";
 import InboxLayout from "./components/InboxLayout";
 import { Box, Typography, Divider, Grid } from "@mui/material";
 
-// Detail component specific to Sales inquiries
-const SalesDetail = ({ data }) => (
+// Detail component now receives the 'data' and 'createdAt' props from the layout
+const SalesDetail = ({ data, createdAt }) => (
   <Box>
     <Typography variant="h5" gutterBottom>
       {data.productInterest
@@ -14,7 +14,7 @@ const SalesDetail = ({ data }) => (
       From: {data.name} &lt;{data.email}&gt;
     </Typography>
     <Typography variant="body2" color="text.secondary">
-      Received: {data.date}
+      Received: {new Date(createdAt).toLocaleString()}
     </Typography>
     <Divider sx={{ my: 2 }} />
     <Grid container spacing={2}>
@@ -46,7 +46,8 @@ const ContentSalesAdmin = () => {
   return (
     <InboxLayout
       pageTitle="Sales Inquiries"
-      dataKey="sales"
+      itemType="Sale Inquiry"
+      dataKey="Sales" // This MUST match the 'type' string in your backend
       DetailComponent={SalesDetail}
     />
   );
