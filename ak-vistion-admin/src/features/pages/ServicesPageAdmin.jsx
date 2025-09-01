@@ -22,9 +22,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ImageIcon from "@mui/icons-material/Image";
 import { useSnackbar } from "notistack";
-import { mockApi } from "../../api/mockApi";
+import apiClient from "../../api/apiClient"; // <-- Use the real API client
 
-// --- STYLES FOR MODALS ---
+// --- STYLES FOR MODALS (This is correct) ---
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -37,7 +37,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-// --- GENERIC FORM MODAL (Reused for Cards & Testimonials) ---
+// --- GENERIC FORM MODAL (This is correct) ---
 const FormModal = ({
   open,
   handleClose,
@@ -48,14 +48,7 @@ const FormModal = ({
 }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const data = { id: initialData?.id };
-    fields.forEach((field) => {
-      if (field.type !== "file") {
-        data[field.name] = formData.get(field.name);
-      }
-    });
-    onSave(data);
+    onSave(new FormData(event.currentTarget));
     handleClose();
   };
   return (
@@ -74,7 +67,12 @@ const FormModal = ({
               sx={{ mb: 2, width: "100%" }}
             >
               {field.label}
-              <input type="file" accept={field.accept} hidden />
+              <input
+                type="file"
+                name={field.name}
+                accept={field.accept}
+                hidden
+              />
             </Button>
           ) : (
             <TextField
@@ -101,22 +99,35 @@ const FormModal = ({
   );
 };
 
-// --- MAIN ADMIN PAGE COMPONENT ---
+// --- MAIN ADMIN PAGE COMPONENT (FINAL INTEGRATED VERSION) ---
 const ServicesPageAdmin = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [servicesData, setServicesData] = useState(null);
+  const [pageData, setPageData] = useState(null);
+  const [serviceCards, setServiceCards] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
 
-  const fetchData = () => {
-    if (!loading) setLoading(true);
-    mockApi.getServicesPageData().then((res) => {
-      setServicesData(res.data);
+  const fetchData = async () => {
+    try {
+      const [pageRes, cardsRes, testimonialsRes] = await Promise.all([
+        apiClient.get("/admin/pages/services"),
+        apiClient.get("/admin/service-cards"),
+        apiClient.get("/admin/testimonials"),
+      ]);
+      setPageData(pageRes.data);
+      setServiceCards(cardsRes.data);
+      setTestimonials(testimonialsRes.data);
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to load Services page data!", {
+        variant: "error",
+      });
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   useEffect(() => {
@@ -127,46 +138,76 @@ const ServicesPageAdmin = () => {
     setModalConfig(config);
     setModalOpen(true);
   };
+  const handleCloseModal = () => setModalOpen(false);
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-  };
-
-  const handleSectionSave = async (sectionKey, event, sectionName) => {
+  // --- DEFINITIVE SAVE HANDLER FOR COMPLEX FORMS ---
+  const handleContentSave = async (event) => {
     event.preventDefault();
-    setSaving(true);
+    setLoading(true);
     const formData = new FormData(event.currentTarget);
-    const newData = Object.fromEntries(formData.entries());
-    await mockApi.saveServicesPageData({ [sectionKey]: newData });
-    enqueueSnackbar(`${sectionName} section updated!`, { variant: "success" });
-    fetchData();
-    setSaving(false);
-  };
-
-  const handleCrudSave = (sectionKey, itemData, itemType) => {
-    const updatedList = itemData.id
-      ? servicesData[sectionKey].map((item) =>
-          item.id === itemData.id ? { ...item, ...itemData } : item
-        )
-      : [...servicesData[sectionKey], { ...itemData, id: Date.now() }];
-
-    mockApi.saveServicesPageData({ [sectionKey]: updatedList }).then(() => {
-      enqueueSnackbar(`${itemType} ${itemData.id ? "updated" : "added"}!`, {
+    try {
+      await apiClient.post("/admin/pages/services", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      enqueueSnackbar("Content sections updated successfully!", {
         variant: "success",
       });
-      fetchData();
-    });
+      await fetchData();
+    } catch (error) {
+      console.error(error.response?.data);
+      enqueueSnackbar("Failed to save content.", { variant: "error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCrudDelete = (sectionKey, itemId, itemType) => {
-    if (window.confirm(`Are you sure you want to delete this ${itemType}?`)) {
-      const updatedList = servicesData[sectionKey].filter(
-        (item) => item.id !== itemId
-      );
-      mockApi.saveServicesPageData({ [sectionKey]: updatedList }).then(() => {
-        enqueueSnackbar(`${itemType} deleted!`, { variant: "warning" });
-        fetchData();
+  // --- DEFINITIVE CRUD SAVE HANDLER ---
+  const handleCrudSave = async (endpoint, formData, itemType, itemId) => {
+    setLoading(true);
+    handleCloseModal();
+    try {
+      const isUpdate = !!itemId;
+      const url = isUpdate ? `${endpoint}/${itemId}` : endpoint;
+      if (isUpdate) {
+        formData.append("_method", "POST");
+      }
+
+      await apiClient.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+      enqueueSnackbar(`${itemType} ${isUpdate ? "updated" : "added"}!`, {
+        variant: "success",
+      });
+      await fetchData();
+    } catch (error) {
+      console.error(error.response?.data);
+      enqueueSnackbar(`Failed to save ${itemType.toLowerCase()}.`, {
+        variant: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- DEFINITIVE CRUD DELETE HANDLER ---
+  const handleCrudDelete = async (endpoint, itemId, itemType) => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete this ${itemType.toLowerCase()}?`
+      )
+    ) {
+      setLoading(true);
+      try {
+        await apiClient.delete(`${endpoint}/${itemId}`);
+        enqueueSnackbar(`${itemType} deleted!`, { variant: "warning" });
+        await fetchData();
+      } catch (error) {
+        enqueueSnackbar(`Failed to delete ${itemType.toLowerCase()}.`, {
+          variant: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -175,6 +216,10 @@ const ServicesPageAdmin = () => {
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
       </Box>
+    );
+  if (!pageData)
+    return (
+      <Typography color="error">Could not load initial page data.</Typography>
     );
 
   return (
@@ -191,56 +236,113 @@ const ServicesPageAdmin = () => {
         />
       )}
 
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Header Section</Typography>
-        </AccordionSummary>
-        <AccordionDetails
-          component="form"
-          onSubmit={(e) => handleSectionSave("header", e, "Header")}
+      <Box component="form" onSubmit={handleContentSave}>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Header Section</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TextField
+              name="header[title]"
+              label="Main Title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.header?.title}
+            />
+            <TextField
+              name="header[subtitle]"
+              label="Subtitle"
+              fullWidth
+              multiline
+              rows={2}
+              sx={{ mb: 2 }}
+              defaultValue={pageData.header?.subtitle}
+            />
+            <Button
+              component="label"
+              variant="outlined"
+              startIcon={<ImageIcon />}
+            >
+              Upload Header Image
+              <input type="file" name="headerImage" accept="image/*" hidden />
+            </Button>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">
+              Installation & Process Sections
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TextField
+              name="installation[title]"
+              label="Installation Section Title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.installation?.title}
+            />
+            <TextField
+              name="installation[description]"
+              label="Installation Description"
+              fullWidth
+              multiline
+              rows={4}
+              sx={{ mb: 2 }}
+              defaultValue={pageData.installation?.description}
+            />
+            <Divider sx={{ my: 2 }} />
+            <TextField
+              name="process[step1]"
+              label="Process Step 1 Title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.process?.step1}
+            />
+            <TextField
+              name="process[step2]"
+              label="Process Step 2 Title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.process?.step2}
+            />
+            <TextField
+              name="process[step3]"
+              label="Process Step 3 Title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.process?.step3}
+            />
+            <TextField
+              name="process[step4]"
+              label="Process Step 4 Title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.process?.step4}
+            />
+          </AccordionDetails>
+        </Accordion>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={loading}
+          sx={{ mt: 3 }}
         >
-          <TextField
-            name="title"
-            label="Main Title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.header.title}
-          />
-          <TextField
-            name="subtitle"
-            label="Subtitle"
-            fullWidth
-            multiline
-            rows={2}
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.header.subtitle}
-          />
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={<ImageIcon />}
-          >
-            Upload Header Image
-            <input type="file" accept="image/*" hidden />
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={saving}
-            sx={{ display: "block", mt: 2 }}
-          >
-            {saving ? <CircularProgress size={24} /> : "Save Header"}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : (
+            "Save All Text & File Content"
+          )}
+        </Button>
+      </Box>
 
-      <Accordion>
+      <Accordion sx={{ mt: 3 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6">"Products We Sell" Cards</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <List>
-            {servicesData.productCards.map((card) => (
+            {serviceCards.map((card) => (
               <ListItem
                 key={card.id}
                 secondaryAction={
@@ -260,11 +362,12 @@ const ServicesPageAdmin = () => {
                             },
                           ],
                           initialData: card,
-                          onSave: (data) =>
+                          onSave: (formData) =>
                             handleCrudSave(
-                              "productCards",
-                              data,
-                              "Product Card"
+                              "/admin/service-cards",
+                              formData,
+                              "Service Card",
+                              card.id
                             ),
                         })
                       }
@@ -274,9 +377,9 @@ const ServicesPageAdmin = () => {
                     <IconButton
                       onClick={() =>
                         handleCrudDelete(
-                          "productCards",
+                          "/admin/service-cards",
                           card.id,
-                          "Product Card"
+                          "Service Card"
                         )
                       }
                     >
@@ -285,7 +388,15 @@ const ServicesPageAdmin = () => {
                   </>
                 }
               >
-                <Avatar variant="rounded" src={card.imageUrl} sx={{ mr: 2 }}>
+                <Avatar
+                  variant="rounded"
+                  src={
+                    card.image_url
+                      ? `http://127.0.0.1:8000/storage/${card.image_url}`
+                      : ""
+                  }
+                  sx={{ mr: 2, bgcolor: "grey.300" }}
+                >
                   <ImageIcon />
                 </Avatar>
                 <ListItemText primary={card.name} />
@@ -308,8 +419,12 @@ const ServicesPageAdmin = () => {
                     accept: "image/*",
                   },
                 ],
-                onSave: (data) =>
-                  handleCrudSave("productCards", data, "Product Card"),
+                onSave: (formData) =>
+                  handleCrudSave(
+                    "/admin/service-cards",
+                    formData,
+                    "Service Card"
+                  ),
               })
             }
           >
@@ -324,7 +439,7 @@ const ServicesPageAdmin = () => {
         </AccordionSummary>
         <AccordionDetails>
           <List>
-            {servicesData.testimonials.map((item) => (
+            {testimonials.map((item) => (
               <ListItem
                 key={item.id}
                 secondaryAction={
@@ -344,8 +459,13 @@ const ServicesPageAdmin = () => {
                             { name: "company", label: "Company" },
                           ],
                           initialData: item,
-                          onSave: (data) =>
-                            handleCrudSave("testimonials", data, "Testimonial"),
+                          onSave: (formData) =>
+                            handleCrudSave(
+                              "/admin/testimonials",
+                              formData,
+                              "Testimonial",
+                              item.id
+                            ),
                         })
                       }
                     >
@@ -353,7 +473,11 @@ const ServicesPageAdmin = () => {
                     </IconButton>
                     <IconButton
                       onClick={() =>
-                        handleCrudDelete("testimonials", item.id, "Testimonial")
+                        handleCrudDelete(
+                          "/admin/testimonials",
+                          item.id,
+                          "Testimonial"
+                        )
                       }
                     >
                       <DeleteIcon />
@@ -380,85 +504,11 @@ const ServicesPageAdmin = () => {
                   { name: "company", label: "Company" },
                 ],
                 onSave: (data) =>
-                  handleCrudSave("testimonials", data, "Testimonial"),
+                  handleCrudSave("/admin/testimonials", data, "Testimonial"),
               })
             }
           >
             Add Testimonial
-          </Button>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Installation Section</Typography>
-        </AccordionSummary>
-        <AccordionDetails
-          component="form"
-          onSubmit={(e) => handleSectionSave("installation", e, "Installation")}
-        >
-          <TextField
-            name="title"
-            label="Section Title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.installation.title}
-          />
-          <TextField
-            name="description"
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.installation.description}
-          />
-          <Button type="submit" variant="contained" disabled={saving}>
-            {saving ? <CircularProgress size={24} /> : "Save Section"}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Service Process Section</Typography>
-        </AccordionSummary>
-        <AccordionDetails
-          component="form"
-          onSubmit={(e) =>
-            handleSectionSave("processSteps", e, "Service Process")
-          }
-        >
-          <TextField
-            name="step1"
-            label="Step 1 Title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.processSteps.step1}
-          />
-          <TextField
-            name="step2"
-            label="Step 2 Title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.processSteps.step2}
-          />
-          <TextField
-            name="step3"
-            label="Step 3 Title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.processSteps.step3}
-          />
-          <TextField
-            name="step4"
-            label="Step 4 Title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={servicesData.processSteps.step4}
-          />
-          <Button type="submit" variant="contained" disabled={saving}>
-            {saving ? <CircularProgress size={24} /> : "Save Process Steps"}
           </Button>
         </AccordionDetails>
       </Accordion>
