@@ -5,16 +5,17 @@ import {
   Box,
   TextField,
   Button,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Modal,
+  IconButton,
+  CircularProgress,
   List,
   ListItem,
   ListItemText,
-  IconButton,
-  CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Avatar,
+  Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
@@ -22,9 +23,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ImageIcon from "@mui/icons-material/Image";
 import { useSnackbar } from "notistack";
-import apiClient from "../../api/apiClient"; // <-- Use the real API client
+import apiClient from "../../api/apiClient";
 
-// --- STYLES FOR MODALS (This is correct) ---
+// --- STYLES FOR MODALS (This is correct and reusable) ---
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -37,7 +38,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-// --- GENERIC FORM MODAL (This is correct) ---
+// --- GENERIC FORM MODAL (This is the final, corrected version) ---
 const FormModal = ({
   open,
   handleClose,
@@ -48,8 +49,8 @@ const FormModal = ({
 }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
-    onSave(new FormData(event.currentTarget));
-    handleClose();
+    const formData = new FormData(event.currentTarget);
+    onSave(formData);
   };
   return (
     <Modal open={open} onClose={handleClose}>
@@ -81,7 +82,7 @@ const FormModal = ({
               label={field.label}
               defaultValue={initialData?.[field.name] ?? ""}
               fullWidth
-              required
+              required={field.required}
               multiline={field.multiline}
               rows={field.rows}
               sx={{ mb: 2 }}
@@ -140,7 +141,6 @@ const ServicesPageAdmin = () => {
   };
   const handleCloseModal = () => setModalOpen(false);
 
-  // --- DEFINITIVE SAVE HANDLER FOR COMPLEX FORMS ---
   const handleContentSave = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -161,7 +161,6 @@ const ServicesPageAdmin = () => {
     }
   };
 
-  // --- DEFINITIVE CRUD SAVE HANDLER ---
   const handleCrudSave = async (endpoint, formData, itemType, itemId) => {
     setLoading(true);
     handleCloseModal();
@@ -189,7 +188,6 @@ const ServicesPageAdmin = () => {
     }
   };
 
-  // --- DEFINITIVE CRUD DELETE HANDLER ---
   const handleCrudDelete = async (endpoint, itemId, itemType) => {
     if (
       window.confirm(
@@ -239,9 +237,16 @@ const ServicesPageAdmin = () => {
       <Box component="form" onSubmit={handleContentSave}>
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">Header Section</Typography>
+            <Typography variant="h6">Page Content</Typography>
           </AccordionSummary>
           <AccordionDetails>
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ fontWeight: "medium" }}
+            >
+              Header Section
+            </Typography>
             <TextField
               name="header[title]"
               label="Main Title"
@@ -266,15 +271,14 @@ const ServicesPageAdmin = () => {
               Upload Header Image
               <input type="file" name="headerImage" accept="image/*" hidden />
             </Button>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">
-              Installation & Process Sections
+            <Divider sx={{ my: 3 }} />
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ fontWeight: "medium" }}
+            >
+              Installation Section
             </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
             <TextField
               name="installation[title]"
               label="Installation Section Title"
@@ -291,7 +295,14 @@ const ServicesPageAdmin = () => {
               sx={{ mb: 2 }}
               defaultValue={pageData.installation?.description}
             />
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 3 }} />
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ fontWeight: "medium" }}
+            >
+              Service Process Section
+            </Typography>
             <TextField
               name="process[step1]"
               label="Process Step 1 Title"
@@ -326,17 +337,13 @@ const ServicesPageAdmin = () => {
           type="submit"
           variant="contained"
           disabled={loading}
-          sx={{ mt: 3 }}
+          sx={{ mt: 3, mb: 3 }}
         >
-          {loading ? (
-            <CircularProgress size={24} />
-          ) : (
-            "Save All Text & File Content"
-          )}
+          {loading ? <CircularProgress size={24} /> : "Save All Page Content"}
         </Button>
       </Box>
 
-      <Accordion sx={{ mt: 3 }}>
+      <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6">"Products We Sell" Cards</Typography>
         </AccordionSummary>
@@ -352,7 +359,7 @@ const ServicesPageAdmin = () => {
                         openModal({
                           title: "Edit Card",
                           fields: [
-                            { name: "name", label: "Name" },
+                            { name: "name", label: "Name", required: true },
                             {
                               name: "image",
                               label: "Image",
@@ -395,7 +402,7 @@ const ServicesPageAdmin = () => {
                       ? `http://127.0.0.1:8000/storage/${card.image_url}`
                       : ""
                   }
-                  sx={{ mr: 2, bgcolor: "grey.300" }}
+                  sx={{ mr: 2, bgcolor: "grey.300", width: 56, height: 56 }}
                 >
                   <ImageIcon />
                 </Avatar>
@@ -406,17 +413,19 @@ const ServicesPageAdmin = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            sx={{ mt: 2 }}
             onClick={() =>
               openModal({
                 title: "Add New Card",
                 fields: [
-                  { name: "name", label: "Name" },
+                  { name: "name", label: "Name", required: true },
                   {
                     name: "image",
                     label: "Image",
                     type: "file",
                     icon: <ImageIcon />,
                     accept: "image/*",
+                    required: true,
                   },
                 ],
                 onSave: (formData) =>
@@ -454,8 +463,9 @@ const ServicesPageAdmin = () => {
                               label: "Quote",
                               multiline: true,
                               rows: 4,
+                              required: true,
                             },
-                            { name: "author", label: "Author" },
+                            { name: "author", label: "Author", required: true },
                             { name: "company", label: "Company" },
                           ],
                           initialData: item,
@@ -495,16 +505,27 @@ const ServicesPageAdmin = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            sx={{ mt: 2 }}
             onClick={() =>
               openModal({
                 title: "Add New Testimonial",
                 fields: [
-                  { name: "quote", label: "Quote", multiline: true, rows: 4 },
-                  { name: "author", label: "Author" },
+                  {
+                    name: "quote",
+                    label: "Quote",
+                    multiline: true,
+                    rows: 4,
+                    required: true,
+                  },
+                  { name: "author", label: "Author", required: true },
                   { name: "company", label: "Company" },
                 ],
-                onSave: (data) =>
-                  handleCrudSave("/admin/testimonials", data, "Testimonial"),
+                onSave: (formData) =>
+                  handleCrudSave(
+                    "/admin/testimonials",
+                    formData,
+                    "Testimonial"
+                  ),
               })
             }
           >

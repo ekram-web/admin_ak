@@ -115,7 +115,7 @@ const BlogPostForm = () => {
           Main Content
         </Typography>
         <Editor
-          apiKey="YOUR_TINYMCE_API_KEY" // IMPORTANT: Get a free key from tiny.cloud
+          apiKey="k9afunq1eckzt1z9skcz31ex7rqxcc59zzcthny5hva5b339" // IMPORTANT: Get a free key from tiny.cloud
           onInit={(evt, editor) => (editorRef.current = editor)}
           initialValue={
             post?.content ?? "<p>Write your amazing blog post here.</p>"

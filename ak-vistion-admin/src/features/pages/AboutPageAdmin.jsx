@@ -15,6 +15,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Avatar,
+  Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
@@ -25,7 +26,7 @@ import VideoFileIcon from "@mui/icons-material/VideoFile";
 import { useSnackbar } from "notistack";
 import apiClient from "../../api/apiClient";
 
-// --- STYLES FOR MODALS ---
+// --- STYLES FOR MODALS (This is correct and reusable) ---
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -38,7 +39,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-// --- GENERIC FORM MODAL (Used for Stats, Team, and Partners) ---
+// --- GENERIC FORM MODAL (This is correct and reusable) ---
 const FormModal = ({
   open,
   handleClose,
@@ -49,13 +50,7 @@ const FormModal = ({
 }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    // Add the ID back for update operations
-    if (initialData?.id) {
-      formData.append("id", initialData.id);
-    }
-    onSave(formData);
-    handleClose();
+    onSave(new FormData(event.currentTarget));
   };
   return (
     <Modal open={open} onClose={handleClose}>
@@ -87,8 +82,7 @@ const FormModal = ({
               label={field.label}
               defaultValue={initialData?.[field.name] ?? ""}
               fullWidth
-              required
-              type={field.type || "text"}
+              required={field.required}
               multiline={field.multiline}
               rows={field.rows}
               sx={{ mb: 2 }}
@@ -106,11 +100,10 @@ const FormModal = ({
   );
 };
 
-// --- MAIN ADMIN PAGE COMPONENT (FINAL VERSION) ---
+// --- MAIN ADMIN PAGE COMPONENT (FINAL INTEGRATED VERSION) ---
 const AboutPageAdmin = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [pageData, setPageData] = useState(null);
   const [team, setTeam] = useState([]);
   const [stats, setStats] = useState([]);
@@ -149,24 +142,23 @@ const AboutPageAdmin = () => {
   };
   const handleCloseModal = () => setModalOpen(false);
 
-  const handleContentSave = async (sectionKey, event) => {
+  const handleContentSave = async (event) => {
     event.preventDefault();
-    setSaving(true);
+    setLoading(true);
     const formData = new FormData(event.currentTarget);
-    const data = Object.fromEntries(formData.entries());
     try {
-      await apiClient.post("/admin/pages/about", { [sectionKey]: data });
-      enqueueSnackbar(
-        `${
-          sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)
-        } section updated!`,
-        { variant: "success" }
-      );
+      await apiClient.post("/admin/pages/about", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      enqueueSnackbar("Content sections updated successfully!", {
+        variant: "success",
+      });
       await fetchData();
     } catch (error) {
+      console.error(error.response?.data);
       enqueueSnackbar("Failed to save content.", { variant: "error" });
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -243,104 +235,124 @@ const AboutPageAdmin = () => {
         />
       )}
 
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Inspiring Spaces Section</Typography>
-        </AccordionSummary>
-        <AccordionDetails
-          component="form"
-          onSubmit={(e) => handleContentSave("inspiring", e)}
-        >
-          <TextField
-            name="preTitle"
-            label="Pre-title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={pageData.inspiring?.preTitle}
-          />
-          <TextField
-            name="title"
-            label="Main Title"
-            fullWidth
-            sx={{ mb: 2 }}
-            defaultValue={pageData.inspiring?.title}
-          />
-          <TextField
-            name="description"
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            sx={{ mb: 2 }}
-            defaultValue={pageData.inspiring?.description}
-          />
-          <Button type="submit" variant="contained" disabled={saving}>
-            {saving ? <CircularProgress size={24} /> : "Save Section"}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
+      <Box component="form" onSubmit={handleContentSave}>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Inspiring Spaces & Promo Video</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TextField
+              name="inspiring[preTitle]"
+              label="Inspiring Pre-title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.inspiring?.preTitle}
+            />
+            <TextField
+              name="inspiring[title]"
+              label="Inspiring Main Title"
+              fullWidth
+              sx={{ mb: 2 }}
+              defaultValue={pageData.inspiring?.title}
+            />
+            <TextField
+              name="inspiring[description]"
+              label="Inspiring Description"
+              fullWidth
+              multiline
+              rows={4}
+              sx={{ mb: 2 }}
+              defaultValue={pageData.inspiring?.description}
+            />
+            <Button component="label" variant="outlined" sx={{ mr: 2 }}>
+              Upload Inspiring Image
+              <input name="image1" type="file" hidden />
+            </Button>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              component="label"
+              variant="outlined"
+              startIcon={<VideoFileIcon />}
+              sx={{ mr: 2 }}
+            >
+              Upload Promo Video
+              <input name="promo_video" type="file" accept="video/*" hidden />
+            </Button>
+            <Button
+              component="label"
+              variant="outlined"
+              startIcon={<ImageIcon />}
+            >
+              Upload Poster Image
+              <input name="poster_image" type="file" accept="image/*" hidden />
+            </Button>
+          </AccordionDetails>
+        </Accordion>
 
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Working Process Section</Typography>
-        </AccordionSummary>
-        <AccordionDetails
-          component="form"
-          onSubmit={(e) => handleContentSave("process", e)}
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Working Process Section</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TextField
+              name="process[visionTitle]"
+              label="Vision Title"
+              fullWidth
+              sx={{ mb: 1 }}
+              defaultValue={pageData.process?.visionTitle}
+            />
+            <TextField
+              name="process[visionDesc]"
+              label="Vision Description"
+              fullWidth
+              multiline
+              rows={2}
+              sx={{ mb: 2 }}
+              defaultValue={pageData.process?.visionDesc}
+            />
+            <TextField
+              name="process[missionTitle]"
+              label="Mission Title"
+              fullWidth
+              sx={{ mb: 1 }}
+              defaultValue={pageData.process?.missionTitle}
+            />
+            <TextField
+              name="process[missionDesc]"
+              label="Mission Description"
+              fullWidth
+              multiline
+              rows={2}
+              sx={{ mb: 2 }}
+              defaultValue={pageData.process?.missionDesc}
+            />
+            <TextField
+              name="process[goalTitle]"
+              label="Goal Title"
+              fullWidth
+              sx={{ mb: 1 }}
+              defaultValue={pageData.process?.goalTitle}
+            />
+            <TextField
+              name="process[goalDesc]"
+              label="Goal Description"
+              fullWidth
+              multiline
+              rows={2}
+              sx={{ mb: 2 }}
+              defaultValue={pageData.process?.goalDesc}
+            />
+          </AccordionDetails>
+        </Accordion>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={loading}
+          sx={{ mt: 3, mb: 3 }}
         >
-          <TextField
-            name="visionTitle"
-            label="Vision Title"
-            fullWidth
-            sx={{ mb: 1 }}
-            defaultValue={pageData.process?.visionTitle}
-          />
-          <TextField
-            name="visionDesc"
-            label="Vision Description"
-            fullWidth
-            multiline
-            rows={2}
-            sx={{ mb: 2 }}
-            defaultValue={pageData.process?.visionDesc}
-          />
-          <TextField
-            name="missionTitle"
-            label="Mission Title"
-            fullWidth
-            sx={{ mb: 1 }}
-            defaultValue={pageData.process?.missionTitle}
-          />
-          <TextField
-            name="missionDesc"
-            label="Mission Description"
-            fullWidth
-            multiline
-            rows={2}
-            sx={{ mb: 2 }}
-            defaultValue={pageData.process?.missionDesc}
-          />
-          <TextField
-            name="goalTitle"
-            label="Goal Title"
-            fullWidth
-            sx={{ mb: 1 }}
-            defaultValue={pageData.process?.goalTitle}
-          />
-          <TextField
-            name="goalDesc"
-            label="Goal Description"
-            fullWidth
-            multiline
-            rows={2}
-            sx={{ mb: 2 }}
-            defaultValue={pageData.process?.goalDesc}
-          />
-          <Button type="submit" variant="contained" disabled={saving}>
-            {saving ? <CircularProgress size={24} /> : "Save Process"}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
+          {loading ? <CircularProgress size={24} /> : "Save All Page Content"}
+        </Button>
+      </Box>
 
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -358,8 +370,8 @@ const AboutPageAdmin = () => {
                         openModal({
                           title: "Edit Stat",
                           fields: [
-                            { name: "label", label: "Label" },
-                            { name: "value", label: "Value" },
+                            { name: "label", label: "Label", required: true },
+                            { name: "value", label: "Value", required: true },
                           ],
                           initialData: stat,
                           onSave: (formData) =>
@@ -394,12 +406,13 @@ const AboutPageAdmin = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            sx={{ mt: 2 }}
             onClick={() =>
               openModal({
                 title: "Add New Stat",
                 fields: [
-                  { name: "label", label: "Label" },
-                  { name: "value", label: "Value" },
+                  { name: "label", label: "Label", required: true },
+                  { name: "value", label: "Value", required: true },
                 ],
                 onSave: (formData) =>
                   handleCrudSave("/admin/statistics", formData, "Stat"),
@@ -427,8 +440,8 @@ const AboutPageAdmin = () => {
                         openModal({
                           title: "Edit Team Member",
                           fields: [
-                            { name: "name", label: "Name" },
-                            { name: "title", label: "Title" },
+                            { name: "name", label: "Name", required: true },
+                            { name: "title", label: "Title", required: true },
                             {
                               name: "image",
                               label: "Profile Image",
@@ -479,12 +492,13 @@ const AboutPageAdmin = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            sx={{ mt: 2 }}
             onClick={() =>
               openModal({
                 title: "Add New Team Member",
                 fields: [
-                  { name: "name", label: "Name" },
-                  { name: "title", label: "Title" },
+                  { name: "name", label: "Name", required: true },
+                  { name: "title", label: "Title", required: true },
                   {
                     name: "image",
                     label: "Profile Image",
@@ -523,7 +537,11 @@ const AboutPageAdmin = () => {
                         openModal({
                           title: "Edit Partner",
                           fields: [
-                            { name: "name", label: "Partner Name" },
+                            {
+                              name: "name",
+                              label: "Partner Name",
+                              required: true,
+                            },
                             {
                               name: "logo",
                               label: "Partner Logo",
@@ -577,11 +595,12 @@ const AboutPageAdmin = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            sx={{ mt: 2 }}
             onClick={() =>
               openModal({
                 title: "Add New Partner",
                 fields: [
-                  { name: "name", label: "Partner Name" },
+                  { name: "name", label: "Partner Name", required: true },
                   {
                     name: "logo",
                     label: "Partner Logo",
