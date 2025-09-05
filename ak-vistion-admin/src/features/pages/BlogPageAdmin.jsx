@@ -1,32 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Paper,
   Typography,
   Box,
   TextField,
   Button,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Modal,
+  IconButton,
+  CircularProgress,
   List,
   ListItem,
   ListItemText,
-  IconButton,
-  CircularProgress,
-  Grid,
   Avatar,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ImageIcon from "@mui/icons-material/Image";
 import { Editor } from "@tinymce/tinymce-react";
 import { useSnackbar } from "notistack";
-import { mockApi } from "../../api/mockApi";
+import apiClient from "../../api/apiClient";
 
-// --- STYLES FOR MODALS ---
+// --- STYLES FOR MODALS (This is correct) ---
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -41,100 +36,136 @@ const modalStyle = {
   overflowY: "auto",
 };
 
-// --- MODAL for Blog Post ---
+// --- FORM MODAL for Blog Posts (FINAL CORRECTED VERSION) ---
 const BlogPostFormModal = ({ open, handleClose, data, onSave }) => {
-  const editorRef = React.useRef(null);
-  const isEditing = Boolean(data?.id);
+  const editorRef = useRef(null);
+  const { enqueueSnackbar } = useSnackbar();
+
+  // --- CRITICAL IMAGE UPLOAD HANDLER ---
+  // This function is called by the editor when you choose an image.
+  const imageUploadHandler = (blobInfo, progress) =>
+    new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append("file", blobInfo.blob(), blobInfo.filename());
+
+      // We will need a new, simple controller in Laravel for this.
+      // For now, this call will fail, but the structure is correct.
+      apiClient
+        .post("/admin/editor-image-upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+        .then((response) => {
+          if (!response.data || !response.data.location) {
+            reject("Invalid JSON response from server");
+            return;
+          }
+          // The backend MUST return a JSON object with a "location" property
+          // Example: { location: 'http://127.0.0.1:8000/storage/editor-uploads/xyz.jpg' }
+          resolve(response.data.location);
+        })
+        .catch((err) => {
+          reject(`Image upload failed: ${err.message}`);
+          enqueueSnackbar("Image upload inside editor failed.", {
+            variant: "error",
+          });
+        });
+    });
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const postData = { id: data?.id };
-    ["title", "author", "category", "readTime", "excerpt"].forEach(
-      (key) => (postData[key] = formData.get(key))
-    );
     if (editorRef.current) {
-      postData.content = editorRef.current.getContent();
+      formData.append("content", editorRef.current.getContent());
     }
-    onSave(postData);
-    handleClose();
+    onSave(formData);
   };
 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={modalStyle} component="form" onSubmit={handleSubmit}>
         <Typography variant="h5" gutterBottom>
-          {isEditing ? "Edit" : "Add"} Blog Post
+          {data?.id ? `Edit Post: ${data.title}` : "Create New Blog Post"}
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              name="title"
-              label="Post Title"
-              fullWidth
-              defaultValue={data?.title}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              name="author"
-              label="Author"
-              fullWidth
-              defaultValue={data?.author}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              name="category"
-              label="Category"
-              fullWidth
-              defaultValue={data?.category}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              name="excerpt"
-              label="Excerpt / Short Summary"
-              fullWidth
-              multiline
-              rows={3}
-              defaultValue={data?.excerpt}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              name="readTime"
-              label="Read Time (e.g., 5 min read)"
-              fullWidth
-              defaultValue={data?.readTime}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Button
-              component="label"
-              variant="outlined"
-              startIcon={<ImageIcon />}
-              fullWidth
-              sx={{ height: "100%" }}
-            >
-              Upload Featured Image
-              <input type="file" hidden />
-            </Button>
-          </Grid>
-        </Grid>
-        <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
+        <TextField
+          name="title"
+          label="Post Title"
+          fullWidth
+          required
+          sx={{ mb: 2 }}
+          defaultValue={data?.title ?? ""}
+        />
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            name="author"
+            label="Author"
+            fullWidth
+            defaultValue={data?.author ?? ""}
+          />
+          <TextField
+            name="category"
+            label="Category"
+            fullWidth
+            defaultValue={data?.category ?? ""}
+          />
+        </Box>
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            name="date"
+            label="Date (e.g., March 15, 2024)"
+            fullWidth
+            defaultValue={data?.date ?? ""}
+          />
+          <TextField
+            name="read_time"
+            label="Read Time (e.g., 5 min read)"
+            fullWidth
+            defaultValue={data?.read_time ?? ""}
+          />
+        </Box>
+        <TextField
+          name="excerpt"
+          label="Excerpt / Short Summary"
+          fullWidth
+          multiline
+          rows={3}
+          required
+          sx={{ mb: 2 }}
+          defaultValue={data?.excerpt ?? ""}
+        />
+        <Button
+          component="label"
+          variant="outlined"
+          startIcon={<ImageIcon />}
+          fullWidth
+          sx={{ mb: 2 }}
+        >
+          Upload Featured Image
+          <input type="file" name="image" accept="image/*" hidden />
+        </Button>
+        <Typography variant="subtitle1" sx={{ mb: 1, color: "text.secondary" }}>
           Main Content
         </Typography>
         <Editor
-          apiKey="YOUR_TINYMCE_API_KEY"
+          // --- PASTE YOUR REAL API KEY HERE ---
+          apiKey="k9afunq1eckzt1z9skcz31ex7rqxcc59zzcthny5hva5b339"
           onInit={(evt, editor) => (editorRef.current = editor)}
-          initialValue={data?.content ?? "<p>Write your post here.</p>"}
+          initialValue={
+            data?.content ?? "<p>Write your amazing blog post here.</p>"
+          }
           init={{
-            height: 400,
+            height: 500,
             menubar: false,
-            plugins: "lists link image charmap",
+            plugins:
+              "anchor autolink charmap codesample image link lists media searchreplace table visualblocks wordcount",
             toolbar:
-              "undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image",
+              "undo redo | blocks | bold italic underline | link image | bullist numlist | removeformat",
+
+            // --- THIS ENABLES THE IMAGE UPLOAD BUTTON ---
+            images_upload_handler: imageUploadHandler,
+            relative_urls: false,
+            remove_script_host: false,
+            automatic_uploads: true, // This is a good practice
+            file_picker_types: "image", // Only allow image uploads
           }}
         />
         <Box
@@ -150,77 +181,85 @@ const BlogPostFormModal = ({ open, handleClose, data, onSave }) => {
   );
 };
 
-// --- MODAL for Learning Resource ---
-const ResourceFormModal = ({ open, handleClose, data, onSave }) => {
-  // ... This would be a simpler form for resources
-  return (
-    <Modal open={open} onClose={handleClose}>
-      <Box sx={modalStyle}>
-        <Typography variant="h5">Manage Learning Resource</Typography>
-        {/* Form fields for resource title, type, thumbnail, etc. would go here */}
-      </Box>
-    </Modal>
-  );
-};
-
-// --- MAIN ADMIN PAGE COMPONENT ---
+// --- MAIN ADMIN PAGE COMPONENT (FINAL INTEGRATED VERSION) ---
 const BlogPageAdmin = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
-  const [blogData, setBlogData] = useState(null);
+  const [posts, setPosts] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalConfig, setModalConfig] = useState({});
+  const [editingPost, setEditingPost] = useState(null);
 
-  const fetchData = () => {
+  const fetchData = async () => {
     if (!loading) setLoading(true);
-    mockApi.getBlogPageData().then((res) => {
-      setBlogData(res.data);
+    try {
+      const response = await apiClient.get("/admin/blog-posts");
+      setPosts(response.data);
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to load blog posts!", { variant: "error" });
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const openModal = (config) => {
-    setModalConfig(config);
+  const openModal = (data = null) => {
+    setEditingPost(data);
     setModalOpen(true);
   };
-
   const handleCloseModal = () => {
+    setEditingPost(null);
     setModalOpen(false);
   };
 
-  const handleCrudSave = (sectionKey, itemData, itemType) => {
-    const updatedList = itemData.id
-      ? blogData[sectionKey].map((item) =>
-          item.id === itemData.id ? { ...item, ...itemData } : item
-        )
-      : [...blogData[sectionKey], { ...itemData, id: Date.now() }];
+  const handleSave = async (formData) => {
+    setLoading(true);
+    handleCloseModal();
+    try {
+      const isUpdate = !!editingPost?.id;
+      const url = isUpdate
+        ? `/admin/blog-posts/${editingPost.id}`
+        : "/admin/blog-posts";
+      if (isUpdate) {
+        formData.append("_method", "POST");
+      }
 
-    mockApi.saveBlogPageData({ [sectionKey]: updatedList }).then(() => {
-      enqueueSnackbar(`${itemType} ${itemData.id ? "updated" : "added"}!`, {
-        variant: "success",
+      await apiClient.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      fetchData();
-    });
-  };
-
-  const handleCrudDelete = (sectionKey, itemId, itemType) => {
-    if (window.confirm(`Are you sure you want to delete this ${itemType}?`)) {
-      const updatedList = blogData[sectionKey].filter(
-        (item) => item.id !== itemId
+      enqueueSnackbar(
+        `Blog Post ${isUpdate ? "updated" : "added"} successfully!`,
+        { variant: "success" }
       );
-      mockApi.saveBlogPageData({ [sectionKey]: updatedList }).then(() => {
-        enqueueSnackbar(`${itemType} deleted!`, { variant: "warning" });
-        fetchData();
-      });
+      await fetchData();
+    } catch (error) {
+      console.error(error.response?.data);
+      enqueueSnackbar("Failed to save blog post.", { variant: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading)
+  const handleDelete = async (postId) => {
+    if (window.confirm("Are you sure you want to delete this blog post?")) {
+      setLoading(true);
+      try {
+        await apiClient.delete(`/admin/blog-posts/${postId}`);
+        enqueueSnackbar("Blog post deleted!", { variant: "warning" });
+        await fetchData();
+      } catch (error) {
+        enqueueSnackbar("Failed to delete blog post.", { variant: "error" });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  if (loading && posts.length === 0)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
@@ -229,132 +268,71 @@ const BlogPageAdmin = () => {
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Manage Blog & Resources
-      </Typography>
-
-      {modalOpen && modalConfig.type === "post" && (
+      {modalOpen && (
         <BlogPostFormModal
           open={modalOpen}
           handleClose={handleCloseModal}
-          data={modalConfig.initialData}
-          onSave={(data) => handleCrudSave("posts", data, "Blog Post")}
-        />
-      )}
-      {modalOpen && modalConfig.type === "resource" && (
-        <ResourceFormModal
-          open={modalOpen}
-          handleClose={handleCloseModal}
-          data={modalConfig.initialData}
-          onSave={(data) => handleCrudSave("resources", data, "Resource")}
+          data={editingPost}
+          onSave={handleSave}
         />
       )}
 
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Blog Posts</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <List>
-            {blogData.posts.map((post) => (
-              <ListItem
-                key={post.id}
-                secondaryAction={
-                  <>
-                    <IconButton
-                      onClick={() =>
-                        openModal({ type: "post", initialData: post })
-                      }
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() =>
-                        handleCrudDelete("posts", post.id, "Blog Post")
-                      }
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </>
-                }
-              >
-                <Avatar
-                  variant="rounded"
-                  src={post.imageUrl}
-                  sx={{ mr: 2, width: 56, height: 56 }}
-                >
-                  <ImageIcon />
-                </Avatar>
-                <ListItemText
-                  primary={post.title}
-                  secondary={`By ${post.author} in ${post.category}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{ mt: 2 }}
-            onClick={() => openModal({ type: "post" })}
-          >
-            Add New Post
-          </Button>
-        </AccordionDetails>
-      </Accordion>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h4">Manage Blog Posts</Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => openModal()}
+        >
+          Add New Post
+        </Button>
+      </Box>
 
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Learning Resources</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <List>
-            {blogData.resources.map((resource) => (
-              <ListItem
-                key={resource.id}
-                secondaryAction={
-                  <>
-                    <IconButton
-                      onClick={() =>
-                        openModal({ type: "resource", initialData: resource })
-                      }
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() =>
-                        handleCrudDelete("resources", resource.id, "Resource")
-                      }
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </>
-                }
-              >
-                <Avatar
-                  variant="rounded"
-                  src={resource.thumbnailUrl}
-                  sx={{ mr: 2, width: 56, height: 56 }}
-                >
-                  <ImageIcon />
-                </Avatar>
-                <ListItemText
-                  primary={resource.title}
-                  secondary={`${resource.type} - ${resource.duration}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{ mt: 2 }}
-            onClick={() => openModal({ type: "resource" })}
+      {loading && <CircularProgress sx={{ display: "block", mx: "auto" }} />}
+
+      <List>
+        {posts.map((post) => (
+          <ListItem
+            key={post.id}
+            secondaryAction={
+              <>
+                <IconButton onClick={() => openModal(post)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={() => handleDelete(post.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </>
+            }
+            sx={{ borderBottom: "1px solid #eee" }}
           >
-            Add New Resource
-          </Button>
-        </AccordionDetails>
-      </Accordion>
+            <Avatar
+              variant="rounded"
+              src={
+                post.image_url
+                  ? `http://127.0.0.1:8000/storage/${post.image_url}`
+                  : ""
+              }
+              sx={{ mr: 2, width: 80, height: 80, bgcolor: "grey.300" }}
+            >
+              <ImageIcon />
+            </Avatar>
+            <ListItemText
+              primary={post.title}
+              secondary={`By ${post.author || "N/A"} in ${
+                post.category || "Uncategorized"
+              }`}
+            />
+          </ListItem>
+        ))}
+      </List>
     </Paper>
   );
 };
