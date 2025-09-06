@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create a dedicated Axios instance for our API
 const apiClient = axios.create({
-  // Use the environment variable for your Laravel API's base URL
+  // Use the environment variable for your Laravel API's base URLs
   // baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api",
   baseURL: "baseURL: https://api.akvision.net/api",
 
