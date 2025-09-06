@@ -15,7 +15,6 @@ import {
   Avatar,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import apiClient from "../api/apiClient";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -35,14 +34,9 @@ const LoginPage = () => {
 
       // 1. Manually create the full, correct URL for the CSRF cookie request.
       // We do this because it's outside our standard '/api' base path.
-      // const csrfUrl = `${
-      //   import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
-      // }/sanctum/csrf-cookie`;
-
-      const csrfUrl = `${apiClient.defaults.baseURL.replace(
-        "/api",
-        ""
-      )}/sanctum/csrf-cookie`;
+      const csrfUrl = `${
+        import.meta.env.VITE_API_URL || "https://api.akvision.net/api,"
+      }/sanctum/csrf-cookie`;
       await apiClient.get(csrfUrl);
 
       // 2. Now that the cookie is set, attempt the actual login using the standard base URL.
