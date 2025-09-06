@@ -165,7 +165,7 @@ const LoginPage = () => {
     const password = data.get("password");
 
     try {
-      // --- THIS IS THE FINAL, CORRECTED SEQUENCE ---
+      // --- THIS IS THE FINAL, CORRECTE SEQUENCE ---
       // 1. Get the base API URL from our central client.
       const apiUrl = apiClient.defaults.baseURL;
 
@@ -188,7 +188,7 @@ const LoginPage = () => {
         });
       }
     } catch (error) {
-      
+
       console.error(
         "Login failed:",
         error.response ? error.response.data : error.message
