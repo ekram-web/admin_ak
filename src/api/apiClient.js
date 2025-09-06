@@ -3,7 +3,8 @@ import axios from "axios";
 // Create a dedicated Axios instance for our API
 const apiClient = axios.create({
   // Use the environment variable for your Laravel API's base URL
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api",
+  // baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api",
+  baseURL: "baseURL: https://api.akvision.net/api",
 
   // This is CRITICAL for Laravel Sanctum's cookie-based authentication to work
   withCredentials: true,
