@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../features/auth/authSlice";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import {
   AppBar,
   Box,

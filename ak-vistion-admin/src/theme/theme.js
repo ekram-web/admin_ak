@@ -8,5 +8,19 @@ const theme = createTheme({
   },
   typography: { fontFamily: '"Montserrat", "Helvetica", "Arial", sans-serif' },
 });
-
+export const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: { main: "#E64A19" }, // A slightly brighter red for dark backgrounds
+    secondary: { main: "#536dfe" },
+    background: {
+      default: "#121212",
+      paper: "#1E1E1E",
+    },
+  },
+  typography: { fontFamily: '"Montserrat", "Helvetica", "Arial", sans-serif' },
+  components: {
+    MuiPaper: { styleOverrides: { root: { backgroundImage: "none" } } },
+  },
+});
 export default theme;
