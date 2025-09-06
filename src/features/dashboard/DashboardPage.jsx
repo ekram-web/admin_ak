@@ -236,7 +236,7 @@ const DashboardPage = () => {
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                 <TrendingUpIcon sx={{ color: "primary.main", mr: 1 }} />
                 <Typography variant="h6">
-                  Inquiry Trends (Last 7 Days)
+                  Inquiry Trends (Last -7- Days)
                 </Typography>
               </Box>
               <Box sx={{ height: 350 }}>
