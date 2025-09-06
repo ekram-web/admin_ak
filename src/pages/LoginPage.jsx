@@ -131,7 +131,6 @@
 
 // export default LoginPage;
 
-
 // ??
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
@@ -165,15 +164,13 @@ const LoginPage = () => {
     const password = data.get("password");
 
     try {
-      // --- THIS IS THE FINAL, CORRECTE SEQUENCE ---
-      // 1. Get the base API URL from our central client.
-      const apiUrl = apiClient.defaults.baseURL;
+      // 1. Construct the root domain URL from our apiClient
+      const rootUrl = new URL(apiClient.defaults.baseURL).origin;
 
-      // 2. Construct the root domain URL for the CSRF cookie request.
-      const rootUrl = new URL(apiUrl).origin;
+      // 2. Request the CSRF cookie from the correct, full URL
       await apiClient.get(`${rootUrl}/sanctum/csrf-cookie`);
 
-      // 3. Now, attempt the actual login using the relative path.
+      // 3. Attempt the login using the relative path
       const response = await apiClient.post("/login", { email, password });
 
       if (response.data.token) {
@@ -182,13 +179,8 @@ const LoginPage = () => {
           loginSuccess({ user: response.data.user, token: response.data.token })
         );
         navigate("/dashboard");
-      } else {
-        enqueueSnackbar("Login failed: No token received.", {
-          variant: "error",
-        });
       }
     } catch (error) {
-
       console.error(
         "Login failed:",
         error.response ? error.response.data : error.message
