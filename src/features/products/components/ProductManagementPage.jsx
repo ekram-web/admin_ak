@@ -191,9 +191,9 @@ const ProductManagementPage = ({ mainCategory, productFields, columns }) => {
         : "/admin/products";
 
       // For updates with FormData, we must send a POST and spoof the method
-      if (isUpdate) {
-        formData.append("_method", "PUT");
-      }
+      // if (isUpdate) {
+      //   formData.append("_method", "PUT");
+      // }
 
       await apiClient.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
